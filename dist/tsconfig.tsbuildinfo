@@ -1,0 +1,1 @@
+{"root":["../index.ts","../src/middleware/usermiddleware.ts","../src/routes/servicerequest.ts","../src/routes/skills.ts","../src/routes/transactions.ts","../src/routes/user.ts"],"version":"5.7.2"}

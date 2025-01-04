@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+  }
+  
+  datasource db {
+    provider = "postgresql"
+    url = env("DATABASE_URL")
+  }
+  
+  enum TransactionType {
+    TOKEN_TRANSFER
+    SERVICE_PAYMENT
+  }
+  
+  enum Status{
+    PENDING
+    COMPLETED
+    CANCELLED
+  }
+  
+  model User{
+    id                          Int               @default(autoincrement()) @id
+    username                    String            @unique
+    email                       String            @unique
+    password                    String
+    profilePicture              String    
+    bio                         String
+    tokens                      Int               
+    availabilitySchedule        String            
+    serviceDuration             Int
+    skill                       Skill[]
+    skillsSought                Skill[]           @relation("SoughtSkills")
+    skillsOffered               Skill[]           @relation("OfferedSkills")
+    receivedRatings             UserRating[]      @relation("ReceivedRatings")
+    givenRatings                UserRating[]      @relation("GivenRatings")
+    serviceRequest              ServiceRequest[]
+    audit                       AuditLog[]        
+    notification                Notification[]        
+    sentMessages                Message[]         @relation("SentMessages")
+    receivedMessages            Message[]         @relation("ReceivedMessages")
+  }
+  model Skill{
+    id                          Int               @default(autoincrement())@id
+    userId                      Int?              
+    title                       String            @unique
+    description                 String
+    proficiencyLevel            String
+    user                        User?              @relation(fields: [userId],references: [id])
+    serviceRequest              ServiceRequest[]    
+    transactionRequest          Transactions[]    
+    soughtBy                    User[]            @relation("SoughtSkills") 
+    offeredBy                   User[]            @relation("OfferedSkills") 
+  }
+  model UserRating{
+    id                          Int               @default(autoincrement())@id
+    receiverId                  Int
+    raterId                     Int
+    rating                      Int
+    comment                     String
+    receiver                    User              @relation("ReceivedRatings", fields: [receiverId], references: [id])
+    rater                       User              @relation("GivenRatings", fields: [raterId], references: [id])
+  }
+  
+  model ServiceRequest{
+    id                          Int               @default(autoincrement())@id
+    requesterId                 Int
+    skillId                     Int
+    status                      Status            @default(PENDING)
+    createdAt                   DateTime          @default(now())
+    updatedAt                   DateTime          @default(now())
+    user                        User              @relation(fields: [requesterId],references: [id])
+    skill                       Skill             @relation(fields: [skillId],references: [id])
+  }
+  model Transactions{
+    id                          Int               @default(autoincrement())@id
+    type                        TransactionType
+    senderId                    Int
+    recieverId                  Int
+    skillId                     Int?              
+    amount                      Int
+    createdAt                   DateTime          @default(now())
+    skill                       Skill?            @relation(fields: [skillId],references: [id])
+  }
+  
+  model AuditLog{
+    id                          Int              @default(autoincrement())@id
+    action                      String
+    userId                      Int     
+    details                     String           
+    createdAt                   DateTime         @default(now())      
+    user                        User             @relation(fields: [userId],references: [id])
+  }
+  
+  model Notification {
+    id                          Int              @default(autoincrement()) @id
+    userId                      Int       
+    type                        String            
+    content                     String           
+    isRead                      Boolean          @default(false)
+    createdAt                   DateTime         @default(now())
+  
+    user                        User             @relation(fields: [userId], references: [id])
+  }
+  model Message {
+    id          Int       @default(autoincrement()) @id
+    senderId    Int
+    receiverId  Int
+    content     String
+    createdAt   DateTime  @default(now())
+  
+    sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+    receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  }
+  
+  
