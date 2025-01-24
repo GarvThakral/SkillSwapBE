@@ -9,13 +9,47 @@ import { userMiddleware } from '../middleware/userMiddleware';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
-const serviceRouter = Router();
+export const serviceRouter = Router();
 const prisma = new PrismaClient();
 
+serviceRouter.get('/',async (req,res)=>{
+    console.log("Reached")
+    try{
+        const serviceRequests = await prisma.serviceRequest.findMany({
+            include:{
+                user:{
+                    select:{
+                        profilePicture:true,
+                        username:true,
+                        availabilitySchedule:true,
+                    }
+                },
+                skill:{
+                    select:{
+                        title:true,
+                        description:true,
+                        proficiencyLevel:true
+                    }
+                }
+            }
+        })
+        res.json({
+            serviceRequests
+        })
+        return;
+    }catch(e){
+        res.status(400).json({
+            message:"error " +e
+        })
+    }
+});
+
+
 serviceRouter.post('/',userMiddleware,async (req,res)=>{
+
     const requiredBody = z.object({
         skillId:z.number(),
-        status:z.enum(['PENDING', 'COMPLETED', 'CANCELLED'])
+        description:z.string(),
     });
     // @ts-ignore
     const userId = req.id;
@@ -23,7 +57,7 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
         const parsedBody = requiredBody.parse(req.body);
         const {
             skillId,
-            status
+            description,
         } = parsedBody;
 
         try{
@@ -31,8 +65,10 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
                 data:{
                     requesterId:userId,
                     skillId,
-                    status
-                }
+                    description,
+                    status:'PENDING'
+                },
+                
             })
             res.json({
                 message:"New service created",
@@ -55,12 +91,29 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
 });
 
 serviceRouter.get('/:id',async (req,res)=>{
+    console.log("Reached")
     // @ts-ignore
     const serviceId = parseInt(req.params.id);
     try{
         const serviceRequest = await prisma.serviceRequest.findFirst({
             where:{
                 id:serviceId
+            },
+            include:{
+                user:{
+                    select:{
+                        profilePicture:true,
+                        username:true,
+                        availabilitySchedule:true,
+                    }
+                },
+                skill:{
+                    select:{
+                        title:true,
+                        description:true,
+                        proficiencyLevel:true
+                    }
+                }
             }
         })
         if (!serviceRequest) {
@@ -78,25 +131,7 @@ serviceRouter.get('/:id',async (req,res)=>{
     }
 });
 
-serviceRouter.get('/',userMiddleware,async (req,res)=>{
-    // @ts-ignore
-    const userId = req.id;
-    try{
-        const serviceRequests = await prisma.serviceRequest.findMany({
-            where:{
-                requesterId:userId
-            }
-        })
-        res.json({
-            serviceRequests
-        })
-        return;
-    }catch(e){
-        res.status(400).json({
-            message:"error " +e
-        })
-    }
-});
+
 
 serviceRouter.put('/:id',userMiddleware,async (req,res)=>{
     const serviceId = parseInt(req.params.id);

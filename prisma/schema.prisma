@@ -17,12 +17,18 @@ generator client {
     TOKEN_TRANSFER
     SERVICE_PAYMENT
   }
+  enum Skillprof{
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+  }
   
   enum Status{
     PENDING
     COMPLETED
     CANCELLED
   }
+
   
   model User{
     id                          Int               @default(autoincrement()) @id
@@ -40,6 +46,10 @@ generator client {
     receivedRatings             UserRating[]      @relation("ReceivedRatings")
     givenRatings                UserRating[]      @relation("GivenRatings")
     serviceRequest              ServiceRequest[]
+    sender                      teachRequest[]    @relation("RequestSender")
+    reciever                    teachRequest[]    @relation("RequestReciever")
+    tradeSender                 tradeRequest[]    @relation("TradeRequestSender")
+    tradeReceiver               tradeRequest[]    @relation("TradeRequestReceiver")
     audit                       AuditLog[]        
     notification                Notification[]        
     sentMessages                Message[]         @relation("SentMessages")
@@ -50,9 +60,12 @@ generator client {
     userId                      Int?              
     title                       String            @unique
     description                 String
-    proficiencyLevel            String
-    user                        User?              @relation(fields: [userId],references: [id])
+    proficiencyLevel            Skillprof            
+    user                        User?             @relation(fields: [userId],references: [id])
     serviceRequest              ServiceRequest[]    
+    teachRequest                teachRequest[]    
+    senderSkill                 tradeRequest[]    @relation("SenderSkill")
+    receiverSkill               tradeRequest[]    @relation("ReceiverSkill")    
     transactionRequest          Transactions[]    
     soughtBy                    User[]            @relation("SoughtSkills") 
     offeredBy                   User[]            @relation("OfferedSkills") 
@@ -71,6 +84,7 @@ generator client {
     id                          Int               @default(autoincrement())@id
     requesterId                 Int
     skillId                     Int
+    description                 String            @default("Default Description")
     status                      Status            @default(PENDING)
     createdAt                   DateTime          @default(now())
     updatedAt                   DateTime          @default(now())
@@ -118,4 +132,31 @@ generator client {
     receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
   }
   
-  
+  model teachRequest{
+    id          Int       @default(autoincrement()) @id
+    senderId    Int
+    receiverId  Int
+    skillId     Int
+    description String    @default("")
+    workingDays String    @default("")
+    status      Status
+    createdAt   DateTime  @default(now())
+    skill       Skill?    @relation(fields: [skillId],references: [id])
+    sender      User      @relation("RequestSender", fields: [senderId], references: [id])
+    receiver    User      @relation("RequestReciever", fields: [receiverId], references: [id])
+  }
+model tradeRequest {
+  id          Int       @default(autoincrement()) @id
+  senderId    Int
+  receiverId  Int
+  senderSkillId   Int  // Skill offered by the sender
+  receiverSkillId Int  // Skill offered by the receiver
+  description String  
+  workingDays String
+  status      Status
+  createdAt   DateTime  @default(now())
+  senderSkill Skill?    @relation("SenderSkill", fields: [senderSkillId], references: [id])
+  receiverSkill Skill?  @relation("ReceiverSkill", fields: [receiverSkillId], references: [id])
+  sender      User      @relation("TradeRequestSender", fields: [senderId], references: [id])
+  receiver    User      @relation("TradeRequestReceiver", fields: [receiverId], references: [id])
+}

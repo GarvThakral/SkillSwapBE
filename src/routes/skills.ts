@@ -10,7 +10,7 @@ skillRouter.post("/",userMiddleware,async (req,res)=>{
     const requiredBody = z.object({
         title:z.string().min(3),
         description:z.string().min(10),
-        proficiencyLevel:z.string()
+        proficiencyLevel:z.enum(["BEGINNER","INTERMEDIATE","ADVANCED"])
     });
 
     const parsedBody = requiredBody.parse(req.body);
@@ -50,7 +50,7 @@ skillRouter.get('/',async (req,res)=>{
     try{
         const skills = await prisma.skill.findMany({
             where:{
-                id:2
+                userId:1
             }
         })
         res.json({

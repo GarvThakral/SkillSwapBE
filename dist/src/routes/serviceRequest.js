@@ -14,29 +14,63 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.serviceRouter = void 0;
 const express_1 = require("express");
 const userMiddleware_1 = require("../middleware/userMiddleware");
 const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
-const serviceRouter = (0, express_1.Router)();
+exports.serviceRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Reached");
+    try {
+        const serviceRequests = yield prisma.serviceRequest.findMany({
+            include: {
+                user: {
+                    select: {
+                        profilePicture: true,
+                        username: true,
+                        availabilitySchedule: true,
+                    }
+                },
+                skill: {
+                    select: {
+                        title: true,
+                        description: true,
+                        proficiencyLevel: true
+                    }
+                }
+            }
+        });
+        res.json({
+            serviceRequests
+        });
+        return;
+    }
+    catch (e) {
+        res.status(400).json({
+            message: "error " + e
+        });
+    }
+}));
+exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const requiredBody = zod_1.z.object({
         skillId: zod_1.z.number(),
-        status: zod_1.z.enum(['PENDING', 'COMPLETED', 'CANCELLED'])
+        description: zod_1.z.string(),
     });
     // @ts-ignore
     const userId = req.id;
     try {
         const parsedBody = requiredBody.parse(req.body);
-        const { skillId, status } = parsedBody;
+        const { skillId, description, } = parsedBody;
         try {
             const newRequest = yield prisma.serviceRequest.create({
                 data: {
                     requesterId: userId,
                     skillId,
-                    status
-                }
+                    description,
+                    status: 'PENDING'
+                },
             });
             res.json({
                 message: "New service created",
@@ -58,13 +92,30 @@ serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter
         });
     }
 }));
-serviceRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.serviceRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Reached");
     // @ts-ignore
     const serviceId = parseInt(req.params.id);
     try {
         const serviceRequest = yield prisma.serviceRequest.findFirst({
             where: {
                 id: serviceId
+            },
+            include: {
+                user: {
+                    select: {
+                        profilePicture: true,
+                        username: true,
+                        availabilitySchedule: true,
+                    }
+                },
+                skill: {
+                    select: {
+                        title: true,
+                        description: true,
+                        proficiencyLevel: true
+                    }
+                }
             }
         });
         if (!serviceRequest) {
@@ -82,27 +133,7 @@ serviceRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     }
 }));
-serviceRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // @ts-ignore
-    const userId = req.id;
-    try {
-        const serviceRequests = yield prisma.serviceRequest.findMany({
-            where: {
-                requesterId: userId
-            }
-        });
-        res.json({
-            serviceRequests
-        });
-        return;
-    }
-    catch (e) {
-        res.status(400).json({
-            message: "error " + e
-        });
-    }
-}));
-serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const serviceId = parseInt(req.params.id);
     const requiredBody = zod_1.z.object({
         skillId: zod_1.z.number(),
@@ -145,7 +176,7 @@ serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __await
         });
     }
 }));
-serviceRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.serviceRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const serviceId = parseInt(req.params.id);
     // @ts-ignore
     const userId = req.id;

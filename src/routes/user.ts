@@ -4,100 +4,116 @@ import { compare, hash } from "bcrypt";
 import { z } from 'zod';
 import { sign } from "jsonwebtoken";
 import {userMiddleware} from '../middleware/userMiddleware'
+import multer from "multer";
+import {v2 as cloudinary} from 'cloudinary';
 
 const JWT_SECRET = process.env.VITE_USER_TOKEN;
 export const userRouter = Router();
-const prisma = new PrismaClient(); 
+const prisma = new PrismaClient();
 
-userRouter.post('/signup',async (req,res)=>{
-    
-   const requiredBody = z.object({
-        username: z.string().min(3).max(10),
-        email: z.string().email(),
-        password: z.string().min(3).max(10),
-        profilePicture: z.string(),
-        bio: z.string(),
-        skillsSought: z.array(z.number()),
-        skillsOffered: z.array(z.number()),
-        availabilitySchedule: z.string(),
-        serviceDuration: z.number(),
-    });
-   try{
+const Storage = multer.memoryStorage();
+const upload = multer({storage:Storage})
 
-    const parsedBody = requiredBody.parse(req.body);
-
-    const {
-            username,
-            email,
-            password,
-            profilePicture,
-            bio,
-            skillsSought,
-            skillsOffered,
-            availabilitySchedule,
-            serviceDuration
-        } = parsedBody; 
-
-        const userExists = await prisma.user.findFirst({
-            where:{
-                username
-            }
-        })
-        try{
-            if(!userExists){
-                const emailExists = await prisma.user.findFirst({
-                    where:{
-                        email
-                    }
-                })
-                if(!emailExists){
-                    const hashedPassword = await hash(password, 5);
-                    const user = await prisma.user.create({
-                        data: {
-                            username,
-                            email,
-                            password:hashedPassword,
-                            profilePicture,
-                            tokens:100,
-                            bio,
-                            skillsSought: {
-                                connect: skillsSought.map((id) => ({ id })),
-                            },
-                            skillsOffered: {
-                                connect: skillsOffered.map((id) => ({ id })),
-                            },
-                            availabilitySchedule,
-                            serviceDuration,
-                        },
-                    });
-                    res.status(200).json({
-                        user
-                    });
-                    return;
-                }else{
-                    res.status(205).json({
-                        message:"The Email already exists"
-                    })
-                    return;
-                }
-            }else{
-                res.status(204).json({
-                    message:"The username already exists"
-                })
-                return;
-            }
-        }catch(e){
-            res.status(303).json({
-                error:e
-            })
-        }
-    }catch(e){
-        res.status(400).json({ error: "Invalid request body", details: e });
-        return;
-    }
-
+cloudinary.config({ 
+    cloud_name: 'dxbih92ua', 
+    api_key: '615982824794157', 
+    api_secret: '-HxRiJj8VPiYS94xCmPRrylng1A'
 });
+// @ts-ignore
+userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => {
+    console.log("Request Body:", req.body);
+    console.log("Uploaded File:", req.file);
 
+    const requiredBody = z.object({
+      username: z.string().min(3).max(10),
+      email: z.string().email(),
+      password: z.string().min(3).max(10),
+      bio: z.string(),
+      skillsSought: z.optional(z.array(z.number())),
+      skillsOffered:  z.optional(z.array(z.number())),
+      availabilitySchedule: z.string(),
+      serviceDuration: z.string(),
+    });
+    
+    try {
+      // Parse the form body excluding profilePicture
+      const parsedBody = requiredBody.parse(req.body);
+      const { username, email, password, bio, skillsSought, skillsOffered, availabilitySchedule, serviceDuration } = parsedBody;
+      let serviceDurationInt = parseInt(serviceDuration);
+  
+      // Get the uploaded file from Multer
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: "Profile picture is required." });
+      }
+  
+      const cloudinaryResponse = await new Promise<string>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: 'profile_pictures' },
+          (error, result) => {
+            if (error) {
+              return reject(error);
+            }
+            if (!result?.secure_url) {
+              return reject(new Error("Image upload failed or result is invalid."));
+            }
+            resolve(result.secure_url);
+          }
+        );
+  
+        uploadStream.end(file.buffer);
+      });
+  
+      const profilePicture = cloudinaryResponse;
+  
+      // Check if user exists
+      const userExists = await prisma.user.findFirst({
+        where: { username },
+      });
+  
+      if (!userExists) {
+        const emailExists = await prisma.user.findFirst({
+          where: { email },
+        });
+  
+        if (!emailExists) {
+          const hashedPassword = await hash(password, 5);
+          // Save user with profile picture URL
+          const user = await prisma.user.create({
+            data: {
+              username,
+              email,
+              password: hashedPassword,
+              profilePicture,
+              tokens: 100,
+              bio,
+              skillsSought: {
+                connect: skillsSought?.map((id) => ({ id })),
+              },
+              skillsOffered: {
+                connect: skillsOffered?.map((id) => ({ id })),
+              },
+              availabilitySchedule,
+              serviceDuration: serviceDurationInt,
+            },
+          });
+  
+          res.status(200).json({ user });
+          return;
+        } else {
+          res.status(409).json({ message: 'The Email already exists' });
+          return;
+        }
+      } else {
+        res.status(409).json({ message: 'The username already exists' });
+        return;
+      }
+    } catch (e) {
+      res.status(400).json({ error: 'Invalid request body', details: e });
+      return;
+    }
+  });
+  
 userRouter.post('/signin',async (req,res)=>{
     const { username , password } = req.body;
     try{
@@ -128,7 +144,7 @@ userRouter.post('/signin',async (req,res)=>{
             return;
         }
     }catch(e){
-        res.json({
+        res.status(403).json({
             error:e
         })
     }

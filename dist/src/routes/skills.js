@@ -20,7 +20,7 @@ exports.skillRouter.post("/", userMiddleware_1.userMiddleware, (req, res) => __a
     const requiredBody = zod_1.z.object({
         title: zod_1.z.string().min(3),
         description: zod_1.z.string().min(10),
-        proficiencyLevel: zod_1.z.string()
+        proficiencyLevel: zod_1.z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"])
     });
     const parsedBody = requiredBody.parse(req.body);
     const { title, description, proficiencyLevel } = parsedBody;
@@ -52,7 +52,7 @@ exports.skillRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const skills = yield prisma.skill.findMany({
             where: {
-                id: 2
+                userId: 1
             }
         });
         res.json({
