@@ -19,6 +19,7 @@ serviceRouter.get('/',async (req,res)=>{
             include:{
                 user:{
                     select:{
+                        id:true,
                         profilePicture:true,
                         username:true,
                         availabilitySchedule:true,
@@ -26,6 +27,7 @@ serviceRouter.get('/',async (req,res)=>{
                 },
                 skill:{
                     select:{
+                        id:true,
                         title:true,
                         description:true,
                         proficiencyLevel:true

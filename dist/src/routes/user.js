@@ -129,7 +129,8 @@ exports.userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 
             if (correctPassword && JWT_SECRET) {
                 const token = (0, jsonwebtoken_1.sign)({ userId }, JWT_SECRET);
                 res.json({
-                    token
+                    token,
+                    userId
                 });
                 return;
             }

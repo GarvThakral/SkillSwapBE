@@ -29,6 +29,15 @@ generator client {
     CANCELLED
   }
 
+  enum Type{
+    TEACH
+    TRADE
+  }
+
+  enum MessageType{
+    REGULAR
+    MEETING
+  }
   
   model User{
     id                          Int               @default(autoincrement()) @id
@@ -122,14 +131,15 @@ generator client {
     user                        User             @relation(fields: [userId], references: [id])
   }
   model Message {
-    id          Int       @default(autoincrement()) @id
+    id          Int          @default(autoincrement()) @id
     senderId    Int
     receiverId  Int
     content     String
-    createdAt   DateTime  @default(now())
-  
-    sender      User      @relation("SentMessages", fields: [senderId], references: [id])
-    receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+    createdAt   DateTime     @default(now())
+    meetingId   String?
+    type        MessageType? @default(REGULAR)
+    sender      User         @relation("SentMessages", fields: [senderId], references: [id])
+    receiver    User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
   }
   
   model teachRequest{
@@ -141,6 +151,7 @@ generator client {
     workingDays String    @default("")
     status      Status
     createdAt   DateTime  @default(now())
+    type        Type      @default(TEACH)
     skill       Skill?    @relation(fields: [skillId],references: [id])
     sender      User      @relation("RequestSender", fields: [senderId], references: [id])
     receiver    User      @relation("RequestReciever", fields: [receiverId], references: [id])
@@ -154,6 +165,7 @@ model tradeRequest {
   description String  
   workingDays String
   status      Status
+  type        Type      @default(TRADE)
   createdAt   DateTime  @default(now())
   senderSkill Skill?    @relation("SenderSkill", fields: [senderSkillId], references: [id])
   receiverSkill Skill?  @relation("ReceiverSkill", fields: [receiverSkillId], references: [id])

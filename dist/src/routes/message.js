@@ -20,23 +20,44 @@ exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
     // @ts-ignore
     const userId = req.id;
     const requiredBody = zod_1.z.object({
+        senderId: zod_1.z.optional(zod_1.z.number()),
         receiverId: zod_1.z.number(),
         content: zod_1.z.string(),
+        type: zod_1.z.optional(zod_1.z.enum(["REGULAR", "MEETING"])),
+        meetingId: zod_1.z.optional(zod_1.z.string())
     });
     try {
         const parsedBody = requiredBody.parse(req.body);
-        const { receiverId, content } = parsedBody;
+        const { senderId, receiverId, content, type, meetingId } = parsedBody;
         try {
-            const newMessage = yield prisma.message.create({
-                data: {
-                    senderId: userId,
-                    receiverId,
-                    content
-                }
-            });
-            res.json({
-                newMessage
-            });
+            if (senderId) {
+                const newMessage = yield prisma.message.create({
+                    data: {
+                        senderId,
+                        receiverId,
+                        content,
+                        type,
+                        meetingId
+                    }
+                });
+                res.json({
+                    newMessage
+                });
+            }
+            else {
+                const newMessage = yield prisma.message.create({
+                    data: {
+                        senderId: userId,
+                        receiverId,
+                        content,
+                        type,
+                        meetingId
+                    }
+                });
+                res.json({
+                    newMessage
+                });
+            }
         }
         catch (e) {
             res.status(303).json({
@@ -54,7 +75,7 @@ exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
         return;
     }
 }));
-exports.messageRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     // @ts-ignore
     const userId = req.id;
     const requiredBody = zod_1.z.object({
@@ -66,12 +87,16 @@ exports.messageRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __
         try {
             const allMessages = yield prisma.message.findMany({
                 where: {
-                    senderId: userId,
-                    receiverId
+                    OR: [
+                        { senderId: userId,
+                            receiverId },
+                        { senderId: receiverId,
+                            receiverId: userId },
+                    ]
                 }
             });
             res.json({
-                allMessages
+                allMessages,
             });
             return;
         }
@@ -89,6 +114,51 @@ exports.messageRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __
             error: e
         });
         return;
+    }
+}));
+exports.messageRouter.get('/users', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const userId = req.id;
+    try {
+        const users = yield prisma.message.findMany({
+            where: {
+                OR: [
+                    { senderId: userId },
+                    { receiverId: userId }
+                ]
+            },
+            select: {
+                senderId: true,
+                receiverId: true
+            }
+        });
+        let uniqueUserArray = [];
+        users.forEach((item) => {
+            if (item.receiverId !== userId && !uniqueUserArray.includes(item.receiverId)) {
+                uniqueUserArray.push(item.receiverId);
+            }
+            if (item.senderId !== userId && !uniqueUserArray.includes(item.senderId)) {
+                uniqueUserArray.push(item.senderId);
+            }
+        });
+        const userDetails = yield prisma.user.findMany({
+            where: {
+                id: { in: uniqueUserArray }
+            },
+            select: {
+                id: true,
+                profilePicture: true,
+                username: true
+            }
+        });
+        res.json({
+            userDetails
+        });
+    }
+    catch (e) {
+        res.status(304).json({
+            message: e
+        });
     }
 }));
 exports.messageRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

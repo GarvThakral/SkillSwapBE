@@ -28,6 +28,7 @@ exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, f
             include: {
                 user: {
                     select: {
+                        id: true,
                         profilePicture: true,
                         username: true,
                         availabilitySchedule: true,
@@ -35,6 +36,7 @@ exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, f
                 },
                 skill: {
                     select: {
+                        id: true,
                         title: true,
                         description: true,
                         proficiencyLevel: true

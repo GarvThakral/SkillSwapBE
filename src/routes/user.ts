@@ -128,7 +128,8 @@ userRouter.post('/signin',async (req,res)=>{
             if(correctPassword && JWT_SECRET){
                 const token = sign({userId}, JWT_SECRET);
                 res.json({
-                    token
+                    token,
+                    userId
                 })
                 return;
             }else{
