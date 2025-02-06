@@ -19,6 +19,10 @@ cloudinary.config({
     api_key: '615982824794157', 
     api_secret: '-HxRiJj8VPiYS94xCmPRrylng1A'
 });
+
+
+
+
 // @ts-ignore
 userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => {
     console.log("Request Body:", req.body);
@@ -150,6 +154,9 @@ userRouter.post('/signin',async (req,res)=>{
         })
     }
 });
+
+
+
 
 userRouter.get('/me', userMiddleware ,async (req,res)=>{
     // @ts-ignore
@@ -460,3 +467,25 @@ userRouter.delete('/:id/skills/offered',userMiddleware,async (req,res)=>{
     }
 
 });
+
+userRouter.post('/tokens' , async (req,res)=>{
+    // @ts-ignore
+    const {userId}= req.body;
+    try{
+        const UsersTokens = await prisma.user.findFirst({
+            where:{
+                id:userId
+            },
+            select:{
+                tokens:true
+            }
+        })
+        res.json({
+            UsersTokens
+        })
+    }catch(e){
+        res.status(405).json({
+            error:e
+        })
+    }
+})

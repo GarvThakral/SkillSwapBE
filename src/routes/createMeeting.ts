@@ -58,10 +58,9 @@ async function getValidPreset() {
             null;
             return 
         }
-
         // ✅ Pick the first available preset
-         data.data[0].name;
-         return;
+        return data.data[0].name;
+         
     } catch (error) {
         console.error("❌ Error fetching presets:", error);
         null;

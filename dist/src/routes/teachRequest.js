@@ -16,8 +16,7 @@ const client_1 = require("@prisma/client");
 exports.teachRequestRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("AAHAAH");
-    const { receiverId, skillId, description, workingDays } = req.body;
+    const { receiverId, skillId, description, workingDays, recieverToken } = req.body;
     // @ts-ignore
     const userId = req.id;
     try {
@@ -28,6 +27,7 @@ exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res)
                 skillId,
                 description,
                 workingDays,
+                recieverToken,
                 status: "PENDING",
                 type: "TEACH"
             }
@@ -53,7 +53,7 @@ exports.teachRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req
                 id: requestId,
             },
             data: {
-                status: "COMPLETED"
+                status: "ACCEPTED"
             }
         });
         res.json({
@@ -62,6 +62,36 @@ exports.teachRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req
     }
     catch (e) {
         res.status(303).json({
+            error: e
+        });
+    }
+}));
+exports.teachRequestRouter.post('/pending', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const userId = req.id;
+    const { receiverId, skillId } = req.body;
+    try {
+        const sentRequest = yield prisma.teachRequest.findFirst({
+            where: {
+                senderId: userId,
+                receiverId,
+                skillId,
+                status: "PENDING",
+            }
+        });
+        if (sentRequest) {
+            res.status(200).json({
+                message: "Request for this skill already sent"
+            });
+        }
+        else {
+            res.status(204).json({
+                message: "Request for this skill already sent"
+            });
+        }
+    }
+    catch (e) {
+        res.status(304).json({
             error: e
         });
     }
@@ -131,6 +161,24 @@ exports.teachRequestRouter.get('/', userMiddleware_1.userMiddleware, (req, res) 
     catch (e) {
         console.log("Eror happened");
         res.json({
+            error: e
+        });
+    }
+}));
+exports.teachRequestRouter.delete('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { teachRequestId } = req.body;
+    try {
+        const deletedRequest = yield prisma.teachRequest.delete({
+            where: {
+                id: teachRequestId
+            }
+        });
+        res.json({
+            deletedRequest
+        });
+    }
+    catch (e) {
+        res.status(304).json({
             error: e
         });
     }

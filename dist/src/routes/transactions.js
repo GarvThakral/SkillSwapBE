@@ -20,27 +20,52 @@ exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, (req, res) 
     // @ts-ignore
     const userId = req.id;
     console.log(userId);
+    console.log("REACHING TRANSACTION ROUTER");
     const requiredBody = zod_1.z.object({
-        type: zod_1.z.enum(["TOKEN_TRANSFER", "SERVICE_PAYMENT"]),
+        type: zod_1.z.enum(["TEACH_REQUEST", "TRADE_REQUEST"]),
         recieverId: zod_1.z.number(),
-        skillId: zod_1.z.optional(zod_1.z.number()),
-        amount: zod_1.z.number()
+        senderSkillId: zod_1.z.optional(zod_1.z.number()),
+        recieverSkillId: zod_1.z.optional(zod_1.z.number()),
+        senderAmount: zod_1.z.number(),
+        recieverAmount: zod_1.z.number(),
+        requestId: zod_1.z.number()
     });
     try {
         const parsedBody = requiredBody.parse(req.body);
-        const { type, recieverId, skillId, amount } = parsedBody;
+        const { type, recieverId, senderSkillId, recieverSkillId, senderAmount, recieverAmount, requestId } = parsedBody;
         try {
+            if (type == "TEACH_REQUEST") {
+                const newTransaction = yield prisma.transactions.create({
+                    data: {
+                        type,
+                        senderId: userId,
+                        recieverId,
+                        recieverSkillId,
+                        senderAmount,
+                        recieverAmount,
+                        requestId
+                    }
+                });
+                res.json({
+                    message: "Teach Transaction Created",
+                    newTransaction
+                });
+                return;
+            }
             const newTransaction = yield prisma.transactions.create({
                 data: {
                     type,
                     senderId: userId,
                     recieverId,
-                    skillId,
-                    amount
+                    senderSkillId,
+                    recieverSkillId,
+                    senderAmount,
+                    recieverAmount,
+                    requestId
                 }
             });
             res.json({
-                message: "Transaction Successful",
+                message: "Trade Transaction Created",
                 newTransaction
             });
             return;
@@ -83,6 +108,121 @@ exports.transactionRouter.get('/', userMiddleware_1.userMiddleware, (req, res) =
             error: e
         });
         return;
+    }
+}));
+exports.transactionRouter.post('/pending', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const userId = req.id;
+    const { user2Id } = req.body;
+    console.log(userId);
+    console.log(user2Id);
+    try {
+        const transaction = yield prisma.transactions.findFirst({
+            where: {
+                status: "PENDING",
+                OR: [
+                    { senderId: user2Id, recieverId: userId },
+                    { senderId: userId, recieverId: user2Id }
+                ],
+            }
+        });
+        if (transaction) {
+            console.log(transaction);
+            res.status(200).json({
+                transaction
+            });
+        }
+        else {
+            console.log("NONE");
+            res.status(205).json({
+                message: "No pending transactions"
+            });
+        }
+    }
+    catch (e) {
+        res.status(304).json({
+            error: e
+        });
+    }
+}));
+exports.transactionRouter.post('/complete', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, senderId, recieverId, amount } = req.body;
+    try {
+        const transaction = yield prisma.transactions.update({
+            where: {
+                id,
+                senderId,
+                recieverId
+            },
+            data: {
+                status: "COMPLETED"
+            }
+        });
+        if (transaction.type == "TEACH_REQUEST") {
+            const completedRequest = yield prisma.teachRequest.update({
+                data: {
+                    status: "COMPLETED"
+                },
+                where: {
+                    id: transaction.requestId
+                }
+            });
+            const updateTokenUser1 = yield prisma.user.update({
+                where: {
+                    id: senderId,
+                },
+                data: {
+                    tokens: {
+                        decrement: amount
+                    }
+                }
+            });
+            const updateTokenUser2 = yield prisma.user.update({
+                where: {
+                    id: recieverId,
+                },
+                data: {
+                    tokens: {
+                        increment: amount
+                    }
+                }
+            });
+            res.json({
+                message: "Transaction complete"
+            });
+        }
+        else if (transaction.type == "TRADE_REQUEST") {
+            const netAmount = transaction.senderAmount - transaction.recieverAmount;
+            const updateTokenUser1 = yield prisma.user.update({
+                where: {
+                    id: senderId,
+                },
+                data: {
+                    tokens: {
+                        increment: netAmount
+                    }
+                }
+            });
+            const updateTokenUser2 = yield prisma.user.update({
+                where: {
+                    id: recieverId,
+                },
+                data: {
+                    tokens: {
+                        decrement: netAmount
+                    }
+                }
+            });
+            res.json({
+                message: "Transaction complete"
+            });
+        }
+    }
+    catch (e) {
+        console.log(e);
+        res.status(304).json({
+            error: e
+        });
     }
 }));
 exports.transactionRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {

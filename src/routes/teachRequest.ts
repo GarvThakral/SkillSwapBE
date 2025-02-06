@@ -7,8 +7,7 @@ const prisma = new PrismaClient();
 
 
 teachRequestRouter.post('/',userMiddleware,async (req,res)=>{
-    console.log("AAHAAH")
-    const { receiverId , skillId , description , workingDays } = req.body;
+    const { receiverId , skillId , description , workingDays , recieverToken } = req.body;
     // @ts-ignore
     const userId = req.id;
 
@@ -20,6 +19,7 @@ teachRequestRouter.post('/',userMiddleware,async (req,res)=>{
                 skillId,
                 description,
                 workingDays,
+                recieverToken,
                 status:"PENDING",
                 type: "TEACH"
             }
@@ -39,7 +39,7 @@ teachRequestRouter.post('/accept' , userMiddleware , async (req,res)=>{
     
     //@ts-ignore
     const userId = req.id;
-    const {requestId} = req.body;
+    const {requestId} = req.body; 
 
     try{
         const teachReq = await prisma.teachRequest.update({
@@ -47,7 +47,7 @@ teachRequestRouter.post('/accept' , userMiddleware , async (req,res)=>{
                 id:requestId,
             },
             data:{
-                status:"COMPLETED"
+                status:"ACCEPTED"
             }
         })
         res.json({
@@ -59,6 +59,37 @@ teachRequestRouter.post('/accept' , userMiddleware , async (req,res)=>{
         });
     }
 });
+
+teachRequestRouter.post('/pending', userMiddleware ,async(req,res)=>{
+    // @ts-ignore
+    const userId = req.id;
+    const { receiverId , skillId } = req.body;
+    try{
+        const sentRequest = await prisma.teachRequest.findFirst({
+            where:{
+                senderId:userId,
+                receiverId,
+                skillId,
+                status:"PENDING",
+            }
+        });
+        if(sentRequest){
+            res.status(200).json({
+                message:"Request for this skill already sent"
+            });
+        }else{
+            res.status(204).json({
+                message:"Request for this skill already sent"
+            });
+
+        }
+    }catch(e){
+        res.status(304).json({
+            error:e
+        });
+    }
+});
+
 teachRequestRouter.post('/deny' , userMiddleware , async (req,res)=>{
     console.log("Reached")
     //@ts-ignore
@@ -126,5 +157,23 @@ teachRequestRouter.get('/',userMiddleware,async (req,res)=>{
         res.json({
             error:e
         })
+    }
+});
+
+teachRequestRouter.delete('/',async (req,res)=>{
+    const {teachRequestId} = req.body;
+    try{
+        const deletedRequest = await prisma.teachRequest.delete({
+            where:{
+                id:teachRequestId
+            }
+        })
+        res.json({
+            deletedRequest
+        });
+    }catch(e){
+        res.status(304).json({
+            error:e
+        });
     }
 });

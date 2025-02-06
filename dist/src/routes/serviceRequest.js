@@ -59,18 +59,20 @@ exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
     const requiredBody = zod_1.z.object({
         skillId: zod_1.z.number(),
         description: zod_1.z.string(),
+        tokenPrice: zod_1.z.number()
     });
     // @ts-ignore
     const userId = req.id;
     try {
         const parsedBody = requiredBody.parse(req.body);
-        const { skillId, description, } = parsedBody;
+        const { skillId, description, tokenPrice } = parsedBody;
         try {
             const newRequest = yield prisma.serviceRequest.create({
                 data: {
                     requesterId: userId,
                     skillId,
                     description,
+                    tokenPrice,
                     status: 'PENDING'
                 },
             });

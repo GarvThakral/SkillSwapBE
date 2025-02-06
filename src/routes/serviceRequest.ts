@@ -52,6 +52,7 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
     const requiredBody = z.object({
         skillId:z.number(),
         description:z.string(),
+        tokenPrice:z.number()
     });
     // @ts-ignore
     const userId = req.id;
@@ -60,6 +61,7 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
         const {
             skillId,
             description,
+            tokenPrice
         } = parsedBody;
 
         try{
@@ -68,6 +70,7 @@ serviceRouter.post('/',userMiddleware,async (req,res)=>{
                     requesterId:userId,
                     skillId,
                     description,
+                    tokenPrice,
                     status:'PENDING'
                 },
                 

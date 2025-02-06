@@ -434,3 +434,25 @@ exports.userRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware
         return;
     }
 }));
+exports.userRouter.post('/tokens', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const { userId } = req.body;
+    try {
+        const UsersTokens = yield prisma.user.findFirst({
+            where: {
+                id: userId
+            },
+            select: {
+                tokens: true
+            }
+        });
+        res.json({
+            UsersTokens
+        });
+    }
+    catch (e) {
+        res.status(405).json({
+            error: e
+        });
+    }
+}));

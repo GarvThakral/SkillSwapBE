@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 
 tradeRequestRouter.post('/',userMiddleware,async (req,res)=>{
-    const { receiverId , senderSkillId , receiverSkillId , description , workingDays } = req.body;
+    const { receiverId , senderSkillId , receiverSkillId , description , workingDays , senderToken , recieverToken } = req.body;
 
     // @ts-ignore
     const userId = req.id;
@@ -21,6 +21,8 @@ tradeRequestRouter.post('/',userMiddleware,async (req,res)=>{
                 receiverSkillId:receiverSkillId,
                 workingDays:"",
                 description:"",
+                senderToken,
+                recieverToken,
                 type: "TRADE",
                 status:"PENDING"
             }
@@ -116,6 +118,37 @@ tradeRequestRouter.post('/accept' , userMiddleware , async (req,res)=>{
         });
     }
 });
+
+tradeRequestRouter.post('/pending',userMiddleware,async (req,res)=>{
+    // @ts-ignore
+    const userId = req.id;
+    const { receiverId , receiverSkillId , senderSkillId } = req.body;
+    try{
+        const pendingTrade = await prisma.tradeRequest.findFirst({
+            where:{
+                senderId:userId,
+                receiverId,
+                receiverSkillId,
+                senderSkillId
+            }
+        });
+        if(pendingTrade){
+            res.status(200).json({
+                message:"Request for this skill already sent"
+            });
+        }else{
+            res.status(204).json({
+                message:"Request for this skill already sent"
+            });
+
+        }
+    }catch(e){
+        res.status(304).json({
+            error:e
+        })
+    }
+});
+
 tradeRequestRouter.post('/deny' , userMiddleware , async (req,res)=>{
     console.log("Reached")
     
@@ -130,10 +163,28 @@ tradeRequestRouter.post('/deny' , userMiddleware , async (req,res)=>{
             }
         })
         res.json({
+            deleteMessage:"DELETED",
             message : tradeReq
         });
     }catch(e){
         res.status(303).json({
+            error:e
+        });
+    }
+});
+tradeRequestRouter.delete('/',async (req,res)=>{
+    const {tradeRequestId} = req.body;
+    try{
+        const deletedRequest = await prisma.tradeRequest.delete({
+            where:{
+                id:tradeRequestId
+            }
+        })
+        res.json({
+            deletedRequest
+        });
+    }catch(e){
+        res.status(304).json({
             error:e
         });
     }

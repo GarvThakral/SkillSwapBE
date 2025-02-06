@@ -31,10 +31,11 @@ exports.meetingRouter.post('/meetings', (req, res) => __awaiter(void 0, void 0, 
         });
         const data = yield response.json();
         if (!response.ok) {
-            return res.status(response.status).json({
+            res.status(response.status).json({
                 error: "Dyte API request failed",
                 details: data
             });
+            return;
         }
         res.status(201).json(data);
     }
@@ -42,7 +43,7 @@ exports.meetingRouter.post('/meetings', (req, res) => __awaiter(void 0, void 0, 
         console.error('❌ Error creating meeting:', error);
         res.status(500).json({
             error: "Failed to create meeting",
-            message: error.message
+            message: error
         });
     }
 }));
@@ -56,14 +57,16 @@ function getValidPreset() {
             const data = yield response.json();
             if (!response.ok || !data.success || !data.data.length) {
                 console.error("❌ No valid presets found in Dyte API:", data);
-                return null;
+                null;
+                return;
             }
             // ✅ Pick the first available preset
             return data.data[0].name;
         }
         catch (error) {
             console.error("❌ Error fetching presets:", error);
-            return null;
+            null;
+            return;
         }
     });
 }
@@ -71,7 +74,8 @@ exports.meetingRouter.post('/addParticipant', (req, res) => __awaiter(void 0, vo
     const { meeting_id, participant_id } = req.body;
     const userid = parseInt(participant_id);
     if (!meeting_id) {
-        return res.status(400).json({ error: "❌ Missing meeting_id" });
+        res.status(400).json({ error: "❌ Missing meeting_id" });
+        return;
     }
     try {
         const userName = yield prisma.user.findFirst({
@@ -81,9 +85,6 @@ exports.meetingRouter.post('/addParticipant', (req, res) => __awaiter(void 0, vo
         });
         // ✅ Fetch a valid preset name dynamically
         const presetName = yield getValidPreset();
-        if (!presetName) {
-            return res.status(500).json({ error: "❌ No valid preset found in Dyte" });
-        }
         console.log(`ℹ️ Using preset: ${presetName}`);
         // ✅ Add participant with the correct preset
         const response = yield fetch(`https://api.dyte.io/v2/meetings/${meeting_id}/participants`, {
@@ -97,10 +98,11 @@ exports.meetingRouter.post('/addParticipant', (req, res) => __awaiter(void 0, vo
         });
         const data = yield response.json();
         if (!response.ok) {
-            return res.status(response.status).json({
+            res.status(response.status).json({
                 error: "❌ Failed to add participant",
                 details: data
             });
+            return;
         }
         res.status(201).json(data);
     }
@@ -108,7 +110,7 @@ exports.meetingRouter.post('/addParticipant', (req, res) => __awaiter(void 0, vo
         console.error("❌ Error adding participant:", error);
         res.status(500).json({
             error: "Failed to add participant",
-            message: error.message
+            message: error
         });
     }
 }));
