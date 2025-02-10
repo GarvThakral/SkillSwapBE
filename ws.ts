@@ -1,8 +1,9 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { PrismaClient } from '@prisma/client';
+const PORT = process.env.PORT || '8080';
 
 const prisma = new PrismaClient();
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: parseInt(PORT) });
 
 // Store active users { userId: WebSocket }
 const usersMap = new Map<string, WebSocket>();
