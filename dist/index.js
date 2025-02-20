@@ -14,6 +14,7 @@ const teachRequest_1 = require("./src/routes/teachRequest");
 const tradeRequest_1 = require("./src/routes/tradeRequest");
 const message_1 = require("./src/routes/message");
 const createMeeting_1 = require("./src/routes/createMeeting");
+const payment_1 = require("./src/routes/payment");
 const app = (0, express_1.default)();
 const prisma = new client_1.PrismaClient();
 app.use(express_1.default.json());
@@ -26,6 +27,7 @@ app.use('/meeting', createMeeting_1.meetingRouter);
 app.use('/messages', message_1.messageRouter);
 app.use('/skill', skills_1.skillRouter);
 app.use('/service', serviceRequest_1.serviceRouter);
+app.use('/payment', payment_1.paymentRouter);
 app.get('/', (req, res) => {
     res.send('HTTP API is running');
 });

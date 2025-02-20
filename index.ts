@@ -10,6 +10,7 @@ import { teachRequestRouter } from './src/routes/teachRequest';
 import { tradeRequestRouter } from './src/routes/tradeRequest';
 import { messageRouter } from './src/routes/message';
 import { meetingRouter } from './src/routes/createMeeting';
+import { paymentRouter } from './src/routes/payment';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -24,6 +25,7 @@ app.use('/meeting', meetingRouter);
 app.use('/messages', messageRouter);
 app.use('/skill', skillRouter);
 app.use('/service', serviceRouter);
+app.use('/payment', paymentRouter);
 
 app.get('/', (req, res) => {
     res.send('HTTP API is running');

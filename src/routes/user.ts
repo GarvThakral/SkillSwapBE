@@ -36,14 +36,12 @@ userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => 
       skillsSought: z.optional(z.array(z.number())),
       skillsOffered:  z.optional(z.array(z.number())),
       availabilitySchedule: z.string(),
-      serviceDuration: z.string(),
     });
     
     try {
       // Parse the form body excluding profilePicture
       const parsedBody = requiredBody.parse(req.body);
-      const { username, email, password, bio, skillsSought, skillsOffered, availabilitySchedule, serviceDuration } = parsedBody;
-      let serviceDurationInt = parseInt(serviceDuration);
+      const { username, email, password, bio, skillsSought, skillsOffered, availabilitySchedule } = parsedBody;
   
       // Get the uploaded file from Multer
       const file = req.file;
@@ -98,7 +96,6 @@ userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => 
                 connect: skillsOffered?.map((id) => ({ id })),
               },
               availabilitySchedule,
-              serviceDuration: serviceDurationInt,
             },
           });
   
@@ -219,7 +216,6 @@ userRouter.get('/:id' , userMiddleware , async(req,res)=>{
                 profilePicture: true,
                 bio: true,
                 availabilitySchedule: true,
-                serviceDuration: true,
             },
         })
         res.json({
@@ -243,7 +239,6 @@ userRouter.put('/:id' , userMiddleware , async(req,res)=>{
         skillsSought: z.array(z.number()),
         skillsOffered: z.array(z.number()),
         availabilitySchedule: z.string(),
-        serviceDuration: z.number(),
     });
    try{
 
@@ -255,7 +250,6 @@ userRouter.put('/:id' , userMiddleware , async(req,res)=>{
         skillsSought,
         skillsOffered,
         availabilitySchedule,
-        serviceDuration,
     } = parsedBody;
     try{
         const user = await prisma.user.update({
@@ -273,7 +267,6 @@ userRouter.put('/:id' , userMiddleware , async(req,res)=>{
                     connect: skillsOffered.map((id) => ({ id })),
                 },
                 availabilitySchedule,
-                serviceDuration,
             }
         });
         res.json({

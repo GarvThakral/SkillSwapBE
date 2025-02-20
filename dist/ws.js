@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = require("ws");
 const client_1 = require("@prisma/client");
-const PORT = process.env.PORT || '8080';
+const PORT = process.env.PORT || "8080";
 const prisma = new client_1.PrismaClient();
 const wss = new ws_1.WebSocketServer({ port: parseInt(PORT) });
 // Store active users { userId: WebSocket }

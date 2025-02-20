@@ -93,6 +93,22 @@ exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (r
                         { senderId: receiverId,
                             receiverId: userId },
                     ]
+                },
+                select: {
+                    type: true,
+                    content: true,
+                    sender: {
+                        select: {
+                            id: true,
+                            profilePicture: true
+                        }
+                    },
+                    receiver: {
+                        select: {
+                            id: true,
+                            profilePicture: true
+                        }
+                    }
                 }
             });
             res.json({

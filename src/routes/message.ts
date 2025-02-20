@@ -91,6 +91,22 @@ messageRouter.post('/fetchMessages',userMiddleware,async (req,res)=>{
                         receiverId:userId},
 
                     ]
+                },
+                select:{
+                    type:true,
+                    content:true,
+                    sender:{
+                        select:{
+                            id:true,
+                            profilePicture:true
+                        }
+                    },
+                    receiver:{
+                        select:{
+                            id:true,
+                            profilePicture:true
+                        }
+                    }
                 }
             });
             res.json({
