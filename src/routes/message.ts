@@ -95,6 +95,7 @@ messageRouter.post('/fetchMessages',userMiddleware,async (req,res)=>{
                 select:{
                     type:true,
                     content:true,
+                    meetingId:true,
                     sender:{
                         select:{
                             id:true,
