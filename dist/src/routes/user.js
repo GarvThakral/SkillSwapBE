@@ -43,13 +43,11 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
         skillsSought: zod_1.z.optional(zod_1.z.array(zod_1.z.number())),
         skillsOffered: zod_1.z.optional(zod_1.z.array(zod_1.z.number())),
         availabilitySchedule: zod_1.z.string(),
-        serviceDuration: zod_1.z.string(),
     });
     try {
         // Parse the form body excluding profilePicture
         const parsedBody = requiredBody.parse(req.body);
-        const { username, email, password, bio, skillsSought, skillsOffered, availabilitySchedule, serviceDuration } = parsedBody;
-        let serviceDurationInt = parseInt(serviceDuration);
+        const { username, email, password, bio, skillsSought, skillsOffered, availabilitySchedule } = parsedBody;
         // Get the uploaded file from Multer
         const file = req.file;
         if (!file) {
@@ -94,7 +92,6 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
                             connect: skillsOffered === null || skillsOffered === void 0 ? void 0 : skillsOffered.map((id) => ({ id })),
                         },
                         availabilitySchedule,
-                        serviceDuration: serviceDurationInt,
                     },
                 });
                 res.status(200).json({ user });
@@ -216,7 +213,6 @@ exports.userRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __
                 profilePicture: true,
                 bio: true,
                 availabilitySchedule: true,
-                serviceDuration: true,
             },
         });
         res.json({
@@ -240,11 +236,10 @@ exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __
         skillsSought: zod_1.z.array(zod_1.z.number()),
         skillsOffered: zod_1.z.array(zod_1.z.number()),
         availabilitySchedule: zod_1.z.string(),
-        serviceDuration: zod_1.z.number(),
     });
     try {
         const parsedBody = requiredBody.parse(req.body);
-        const { email, profilePicture, bio, skillsSought, skillsOffered, availabilitySchedule, serviceDuration, } = parsedBody;
+        const { email, profilePicture, bio, skillsSought, skillsOffered, availabilitySchedule, } = parsedBody;
         try {
             const user = yield prisma.user.update({
                 where: {
@@ -261,7 +256,6 @@ exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __
                         connect: skillsOffered.map((id) => ({ id })),
                     },
                     availabilitySchedule,
-                    serviceDuration,
                 }
             });
             res.json({
