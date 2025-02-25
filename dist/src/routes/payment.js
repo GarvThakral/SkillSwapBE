@@ -50,7 +50,13 @@ exports.paymentRouter.post("/verify-payment", (req, res) => __awaiter(void 0, vo
         res.json({ success: true, message: "Payment verified" });
         const paymentDetails = yield instance.orders.fetch(razorpay_order_id);
         console.log(paymentDetails);
-        const tokensInc = Number(paymentDetails.amount) / 100;
+        let tokensInc;
+        if (Number(paymentDetails.amount) / 100 == 1999) {
+            tokensInc = 500;
+        }
+        else {
+            tokensInc = Number(paymentDetails.amount) / 500;
+        }
         const updatedUser = yield prisma.user.update({
             where: {
                 id: intId

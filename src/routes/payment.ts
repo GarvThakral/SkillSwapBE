@@ -39,7 +39,13 @@ paymentRouter.post("/verify-payment", async (req, res) => {
     res.json({ success: true, message: "Payment verified" });
     const paymentDetails = await instance.orders.fetch(razorpay_order_id);
     console.log(paymentDetails)
-    const tokensInc = Number(paymentDetails.amount)/100
+    let tokensInc;
+    if(Number(paymentDetails.amount)/100 == 1999){
+      tokensInc = 500
+
+    }else{
+      tokensInc = Number(paymentDetails.amount)/500
+    }
     const updatedUser = await prisma.user.update({
         where:{
             id:intId

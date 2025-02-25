@@ -15,6 +15,54 @@ const userMiddleware_1 = require("../middleware/userMiddleware");
 const client_1 = require("@prisma/client");
 exports.teachRequestRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
+exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // @ts-ignore
+    const userId = req.id;
+    try {
+        console.log("Reached");
+        const teachRequests = yield prisma.teachRequest.findMany({
+            where: {
+                receiverId: userId
+            },
+            include: {
+                sender: {
+                    select: {
+                        id: true,
+                        profilePicture: true,
+                        username: true,
+                        availabilitySchedule: true,
+                    }
+                },
+                receiver: {
+                    select: {
+                        id: true,
+                        profilePicture: true,
+                        username: true,
+                        availabilitySchedule: true,
+                    }
+                },
+                skill: {
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        proficiencyLevel: true
+                    }
+                }
+            }
+        });
+        res.json({
+            message: "Here are all teaching requests",
+            teachRequests
+        });
+    }
+    catch (e) {
+        console.log("Eror happened");
+        res.json({
+            error: e
+        });
+    }
+}));
 exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { receiverId, skillId, description, workingDays, recieverToken } = req.body;
     // @ts-ignore
@@ -113,54 +161,6 @@ exports.teachRequestRouter.post('/deny', userMiddleware_1.userMiddleware, (req, 
     }
     catch (e) {
         res.status(303).json({
-            error: e
-        });
-    }
-}));
-exports.teachRequestRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    // @ts-ignore
-    const userId = req.id;
-    try {
-        console.log("Reached");
-        const teachRequests = yield prisma.teachRequest.findMany({
-            where: {
-                receiverId: userId
-            },
-            include: {
-                sender: {
-                    select: {
-                        id: true,
-                        profilePicture: true,
-                        username: true,
-                        availabilitySchedule: true,
-                    }
-                },
-                receiver: {
-                    select: {
-                        id: true,
-                        profilePicture: true,
-                        username: true,
-                        availabilitySchedule: true,
-                    }
-                },
-                skill: {
-                    select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        proficiencyLevel: true
-                    }
-                }
-            }
-        });
-        res.json({
-            message: "Here are all teaching requests",
-            teachRequests
-        });
-    }
-    catch (e) {
-        console.log("Eror happened");
-        res.json({
             error: e
         });
     }

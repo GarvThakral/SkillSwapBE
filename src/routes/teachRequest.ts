@@ -5,6 +5,53 @@ import { PrismaClient } from '@prisma/client';
 export const teachRequestRouter = Router();
 const prisma = new PrismaClient();
 
+teachRequestRouter.get('/get',userMiddleware,async (req,res)=>{
+    // @ts-ignore
+    const userId = req.id;
+    try{
+        console.log("Reached");
+        const teachRequests = await prisma.teachRequest.findMany({
+            where:{
+                receiverId:userId
+            },
+            include:{
+                sender:{
+                    select:{
+                        id:true,
+                        profilePicture:true,
+                        username:true,
+                        availabilitySchedule:true,
+                    }
+                },
+                receiver:{
+                    select:{
+                        id:true,
+                        profilePicture:true,
+                        username:true,
+                        availabilitySchedule:true,
+                    }
+                },
+                skill:{
+                    select:{
+                        id:true,
+                        title:true,
+                        description:true,
+                        proficiencyLevel:true
+                    }
+                }
+            }
+        });
+        res.json({
+            message:"Here are all teaching requests",
+            teachRequests
+        })
+    }catch(e){
+        console.log("Eror happened");
+        res.json({
+            error:e
+        })
+    }
+});
 
 teachRequestRouter.post('/',userMiddleware,async (req,res)=>{
     const { receiverId , skillId , description , workingDays , recieverToken } = req.body;
@@ -112,53 +159,7 @@ teachRequestRouter.post('/deny' , userMiddleware , async (req,res)=>{
     }
 });
 
-teachRequestRouter.get('/',userMiddleware,async (req,res)=>{
-    // @ts-ignore
-    const userId = req.id;
-    try{
-        console.log("Reached");
-        const teachRequests = await prisma.teachRequest.findMany({
-            where:{
-                receiverId:userId
-            },
-            include:{
-                sender:{
-                    select:{
-                        id:true,
-                        profilePicture:true,
-                        username:true,
-                        availabilitySchedule:true,
-                    }
-                },
-                receiver:{
-                    select:{
-                        id:true,
-                        profilePicture:true,
-                        username:true,
-                        availabilitySchedule:true,
-                    }
-                },
-                skill:{
-                    select:{
-                        id:true,
-                        title:true,
-                        description:true,
-                        proficiencyLevel:true
-                    }
-                }
-            }
-        });
-        res.json({
-            message:"Here are all teaching requests",
-            teachRequests
-        })
-    }catch(e){
-        console.log("Eror happened");
-        res.json({
-            error:e
-        })
-    }
-});
+
 
 teachRequestRouter.delete('/',async (req,res)=>{
     const {teachRequestId} = req.body;

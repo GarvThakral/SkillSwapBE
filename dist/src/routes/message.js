@@ -97,6 +97,7 @@ exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (r
                 select: {
                     type: true,
                     content: true,
+                    meetingId: true,
                     sender: {
                         select: {
                             id: true,
