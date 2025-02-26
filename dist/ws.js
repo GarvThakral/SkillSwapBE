@@ -17,7 +17,6 @@ const wss = new ws_1.WebSocketServer({ port: parseInt(PORT) });
 // Store active users { userId: WebSocket }
 const usersMap = new Map();
 wss.on('connection', (ws) => {
-    console.log('New client connected');
     ws.on('message', (message) => __awaiter(void 0, void 0, void 0, function* () {
         const jsonMessage = JSON.parse(message.toString());
         if (jsonMessage.type === "Register") {

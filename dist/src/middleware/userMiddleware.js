@@ -4,7 +4,6 @@ exports.userMiddleware = userMiddleware;
 const jsonwebtoken_1 = require("jsonwebtoken");
 const JWT_SECRET = process.env.VITE_USER_TOKEN;
 function userMiddleware(req, res, next) {
-    console.log("Headers received:", req.headers);
     const token = req.headers['token'];
     if (token && JWT_SECRET) {
         try {

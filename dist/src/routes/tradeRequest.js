@@ -16,7 +16,7 @@ const client_1 = require("@prisma/client");
 exports.tradeRequestRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 exports.tradeRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { receiverId, senderSkillId, receiverSkillId, description, workingDays, senderToken, recieverToken } = req.body;
+    const { receiverId, senderSkillId, receiverSkillId, description, workingDays, senderToken, recieverToken, serviceId } = req.body;
     // @ts-ignore
     const userId = req.id;
     try {
@@ -31,7 +31,8 @@ exports.tradeRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res)
                 senderToken,
                 recieverToken,
                 type: "TRADE",
-                status: "PENDING"
+                status: "PENDING",
+                serviceId
             }
         });
         res.json({

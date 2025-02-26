@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 
 tradeRequestRouter.post('/',userMiddleware,async (req,res)=>{
-    const { receiverId , senderSkillId , receiverSkillId , description , workingDays , senderToken , recieverToken } = req.body;
+    const { receiverId , senderSkillId , receiverSkillId , description , workingDays , senderToken , recieverToken , serviceId} = req.body;
 
     // @ts-ignore
     const userId = req.id;
@@ -24,7 +24,8 @@ tradeRequestRouter.post('/',userMiddleware,async (req,res)=>{
                 senderToken,
                 recieverToken,
                 type: "TRADE",
-                status:"PENDING"
+                status:"PENDING",
+                serviceId 
             }
         })
         res.json({

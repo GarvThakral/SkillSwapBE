@@ -4,186 +4,202 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-    provider = "prisma-client-js"
-  }
-  
-  datasource db {
-    provider = "postgresql"
-    url = env("DATABASE_URL")
-  }
-  
-  enum TransactionStatus {
-    PENDING    
-    COMPLETED
-  }
-  enum TransactionType {
-    TEACH_REQUEST
-    TRADE_REQUEST
-  }
-  enum Skillprof{
-    BEGINNER
-    INTERMEDIATE
-    ADVANCED
-  }
-  
-  enum Status{
-    PENDING
-    ACCEPTED
-    COMPLETED
-    CANCELLED
-  }
-
-  enum Type{
-    TEACH
-    TRADE
-  }
-
-  enum MessageType{
-    REGULAR
-    MEETING
-  }
-  
-  model User{
-    id                          Int               @default(autoincrement()) @id
-    username                    String            @unique
-    email                       String            @unique
-    password                    String
-    profilePicture              String    
-    bio                         String
-    tokens                      Int               @default(100)              
-    availabilitySchedule        String            
-    skill                       Skill[]
-    skillsSought                Skill[]           @relation("SoughtSkills")
-    skillsOffered               Skill[]           @relation("OfferedSkills")
-    receivedRatings             UserRating[]      @relation("ReceivedRatings")
-    givenRatings                UserRating[]      @relation("GivenRatings")
-    serviceRequest              ServiceRequest[]
-    sender                      teachRequest[]    @relation("RequestSender")
-    reciever                    teachRequest[]    @relation("RequestReciever")
-    tradeSender                 tradeRequest[]    @relation("TradeRequestSender")
-    tradeReceiver               tradeRequest[]    @relation("TradeRequestReceiver")
-    audit                       AuditLog[]        
-    notification                Notification[]        
-    sentMessages                Message[]         @relation("SentMessages")
-    receivedMessages            Message[]         @relation("ReceivedMessages")
-  }
-  model Skill{
-    id                          Int               @default(autoincrement())@id
-    userId                      Int?              
-    title                       String            @unique
-    description                 String
-    proficiencyLevel            Skillprof            
-    user                        User?             @relation(fields: [userId],references: [id])
-    serviceRequest              ServiceRequest[]    
-    teachRequest                teachRequest[]    
-    senderSkill                 tradeRequest[]    @relation("SenderSkill")
-    receiverSkill               tradeRequest[]    @relation("ReceiverSkill")    
-    transactionRequest          Transactions[]    @relation(name: "senderSkill")
-    tradeTransationRequest      Transactions[]    @relation(name: "recieverSkill")
-    soughtBy                    User[]            @relation("SoughtSkills") 
-    offeredBy                   User[]            @relation("OfferedSkills") 
-  }
-  model UserRating{
-    id                          Int               @default(autoincrement())@id
-    receiverId                  Int
-    raterId                     Int
-    rating                      Int
-    comment                     String
-    receiver                    User              @relation("ReceivedRatings", fields: [receiverId], references: [id])
-    rater                       User              @relation("GivenRatings", fields: [raterId], references: [id])
-  }
-  
-  model ServiceRequest{
-    id                          Int               @default(autoincrement())@id
-    requesterId                 Int
-    skillId                     Int
-    tokenPrice                  Int               @default(50)
-    description                 String            @default("Default Description")
-    status                      Status            @default(PENDING)
-    createdAt                   DateTime          @default(now())
-    updatedAt                   DateTime          @default(now())
-    user                        User              @relation(fields: [requesterId],references: [id])
-    skill                       Skill             @relation(fields: [skillId],references: [id])
-  }
-model Transactions {
-    id               Int               @default(autoincrement()) @id
-    type             TransactionType   
-    status           TransactionStatus @default(PENDING)
-    senderId         Int
-    recieverId       Int
-    senderSkillId    Int?              // Temporarily make it nullable
-    recieverSkillId  Int?               // Keep it nullable
-    senderAmount     Int
-    recieverAmount   Int
-    createdAt        DateTime          @default(now())
-    requestId        Int               @default(0)
-    senderskill      Skill?            @relation(fields: [senderSkillId], references: [id], name: "senderSkill")
-    receiverskill    Skill?            @relation(fields: [recieverSkillId], references: [id], name: "recieverSkill")
+generator cl{
+  provider = "prisma-client-js"
 }
 
-  model AuditLog{
-    id          Int           @default(autoincrement())@id
-    action      String
-    userId      Int     
-    details     String           
-    createdAt   DateTime      @default(now())      
-    user        User          @relation(fields: [userId],references: [id])
-  }
-  
-  model Notification {
-    id          Int           @default(autoincrement()) @id
-    userId      Int       
-    type        String            
-    content     String           
-    isRead      Boolean       @default(false)
-    createdAt   DateTime      @default(now())
-  
-    user        User          @relation(fields: [userId], references: [id])
-  }
-  model Message {
-    id          Int           @default(autoincrement()) @id
-    senderId    Int
-    receiverId  Int
-    content     String
-    createdAt   DateTime      @default(now())
-    meetingId   String?
-    type        MessageType?  @default(REGULAR)
-    sender      User          @relation("SentMessages", fields: [senderId], references: [id])
-    receiver    User          @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  }
-  
-  model teachRequest{
-    id          Int           @default(autoincrement()) @id
-    senderId    Int
-    receiverId  Int
-    skillId     Int
-    senderToken       Int       @default(0)//Tokens to be received by trader
-    recieverToken     Int       @default(50)//Tokens to be sent by the request maker
-    description String        @default("")
-    workingDays String        @default("")
-    status      Status
-    createdAt   DateTime      @default(now())
-    type        Type          @default(TEACH)
-    skill       Skill?        @relation(fields: [skillId],references: [id])
-    sender      User          @relation("RequestSender", fields: [senderId], references: [id])
-    receiver    User          @relation("RequestReciever", fields: [receiverId], references: [id])
-  }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+}
+
+enum TransactionType {
+  TEACH_REQUEST
+  TRADE_REQUEST
+}
+
+enum Skillprof {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Status {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+enum Type {
+  TEACH
+  TRADE
+}
+
+enum MessageType {
+  REGULAR
+  MEETING
+}
+
+model User {
+  id                   Int              @id @default(autoincrement())
+  username             String           @unique
+  email                String           @unique
+  password             String
+  profilePicture       String
+  bio                  String
+  tokens               Int              @default(100)
+  availabilitySchedule String
+  skill                Skill[]
+  skillsSought         Skill[]          @relation("SoughtSkills")
+  skillsOffered        Skill[]          @relation("OfferedSkills")
+  receivedRatings      UserRating[]     @relation("ReceivedRatings")
+  givenRatings         UserRating[]     @relation("GivenRatings")
+  serviceRequest       ServiceRequest[]
+  sender               teachRequest[]   @relation("RequestSender")
+  reciever             teachRequest[]   @relation("RequestReciever")
+  tradeSender          tradeRequest[]   @relation("TradeRequestSender")
+  tradeReceiver        tradeRequest[]   @relation("TradeRequestReceiver")
+  audit                AuditLog[]
+  notification         Notification[]
+  sentMessages         Message[]        @relation("SentMessages")
+  receivedMessages     Message[]        @relation("ReceivedMessages")
+}
+
+model Skill {
+  id                     Int              @id @default(autoincrement())
+  userId                 Int?
+  title                  String           @unique
+  description            String
+  proficiencyLevel       Skillprof
+  user                   User?            @relation(fields: [userId], references: [id])
+  serviceRequest         ServiceRequest[]
+  teachRequest           teachRequest[]
+  senderSkill            tradeRequest[]   @relation("SenderSkill")
+  receiverSkill          tradeRequest[]   @relation("ReceiverSkill")
+  transactionRequest     Transactions[]   @relation(name: "senderSkill")
+  tradeTransationRequest Transactions[]   @relation(name: "recieverSkill")
+  soughtBy               User[]           @relation("SoughtSkills")
+  offeredBy              User[]           @relation("OfferedSkills")
+}
+
+model UserRating {
+  id         Int    @id @default(autoincrement())
+  receiverId Int
+  raterId    Int
+  rating     Float
+  comment    String
+  receiver   User   @relation("ReceivedRatings", fields: [receiverId], references: [id])
+  rater      User   @relation("GivenRatings", fields: [raterId], references: [id])
+}
+
+model ServiceRequest {
+  id           Int            @id @default(autoincrement())
+  requesterId  Int
+  skillId      Int
+  tokenPrice   Int            @default(50)
+  description  String         @default("Default Description")
+  status       Status         @default(PENDING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now())
+  user         User           @relation(fields: [requesterId], references: [id])
+  skill        Skill          @relation(fields: [skillId], references: [id])
+  teachRequest teachRequest[]
+  tradeRequest tradeRequest[]
+  transactions Transactions[]
+}
+
+model Transactions {
+  id              Int               @id @default(autoincrement())
+  type            TransactionType
+  status          TransactionStatus @default(PENDING)
+  senderId        Int
+  recieverId      Int
+  senderSkillId   Int? // Temporarily make it nullable
+  recieverSkillId Int? // Keep it nullable
+  senderAmount    Int
+  recieverAmount  Int
+  createdAt       DateTime          @default(now())
+  requestId       Int               @default(0)
+  serviceId       Int               @default(1)
+  servRel         ServiceRequest    @relation(fields:[serviceId],references: [id])
+  senderskill     Skill?            @relation(fields: [senderSkillId], references: [id], name: "senderSkill")
+  receiverskill   Skill?            @relation(fields: [recieverSkillId], references: [id], name: "recieverSkill")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  userId    Int
+  details   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Message {
+  id         Int          @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String
+  createdAt  DateTime     @default(now())
+  meetingId  String?
+  type       MessageType? @default(REGULAR)
+  sender     User         @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User         @relation("ReceivedMessages", fields: [receiverId], references: [id])
+}
+
+model teachRequest {
+  id            Int            @id @default(autoincrement())
+  senderId      Int
+  receiverId    Int
+  skillId       Int
+  senderToken   Int            @default(0) //Tokens to be received by trader
+  recieverToken Int            @default(50) //Tokens to be sent by the request maker
+  description   String         @default("")
+  workingDays   String         @default("")
+  serviceId     Int            @default(1)
+  serviceRel    ServiceRequest @relation(fields: [serviceId], references: [id])
+  status        Status
+  createdAt     DateTime       @default(now())
+  type          Type           @default(TEACH)
+  skill         Skill?         @relation(fields: [skillId], references: [id])
+  sender        User           @relation("RequestSender", fields: [senderId], references: [id])
+  receiver      User           @relation("RequestReciever", fields: [receiverId], references: [id])
+}
+
 model tradeRequest {
-  id                Int       @default(autoincrement()) @id
-  senderId          Int
-  receiverId        Int
-  senderSkillId     Int       // Skill offered by the sender
-  senderToken       Int       @default(50)//Tokens to be received by trader
-  recieverToken     Int       @default(50)//Tokens to be sent by the request maker
-  receiverSkillId   Int       // Skill offered by the receiver
-  description       String  
-  workingDays       String
-  status            Status
-  type              Type      @default(TRADE)
-  createdAt         DateTime  @default(now())
-  senderSkill       Skill?    @relation("SenderSkill", fields: [senderSkillId], references: [id])
-  receiverSkill     Skill?    @relation("ReceiverSkill", fields: [receiverSkillId], references: [id])
-  sender            User      @relation("TradeRequestSender", fields: [senderId], references: [id])
-  receiver          User      @relation("TradeRequestReceiver", fields: [receiverId], references: [id])
+  id              Int      @id @default(autoincrement())
+  senderId        Int
+  receiverId      Int
+  senderSkillId   Int // Skill offered by the sender
+  senderToken     Int      @default(50) //Tokens to be received by trader
+  recieverToken   Int      @default(50) //Tokens to be sent by the request maker
+  receiverSkillId Int // Skill offered by the receiver
+  description     String
+  workingDays     String
+  status          Status
+  type            Type     @default(TRADE)
+  createdAt       DateTime @default(now())
+  serviceId       Int      @default(1)
+  serviceRel      ServiceRequest @relation(fields: [serviceId],references: [id])
+  senderSkill     Skill?   @relation("SenderSkill", fields: [senderSkillId], references: [id])
+  receiverSkill   Skill?   @relation("ReceiverSkill", fields: [receiverSkillId], references: [id])
+  sender          User     @relation("TradeRequestSender", fields: [senderId], references: [id])
+  receiver        User     @relation("TradeRequestReceiver", fields: [receiverId], references: [id])
 }

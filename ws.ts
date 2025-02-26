@@ -9,7 +9,6 @@ const wss = new WebSocketServer({ port: parseInt(PORT) });
 const usersMap = new Map<string, WebSocket>();
 
 wss.on('connection', (ws: WebSocket) => {
-    console.log('New client connected');
 
     ws.on('message', async (message) => {
         const jsonMessage = JSON.parse(message.toString());

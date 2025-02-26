@@ -29,9 +29,9 @@ userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => 
     console.log("Uploaded File:", req.file);
 
     const requiredBody = z.object({
-      username: z.string().min(3).max(10),
+      username: z.string().min(3).max(20),
       email: z.string().email(),
-      password: z.string().min(3).max(10),
+      password: z.string().min(3).max(20),
       bio: z.string(),
       skillsSought: z.optional(z.array(z.number())),
       skillsOffered:  z.optional(z.array(z.number())),

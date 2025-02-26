@@ -23,6 +23,7 @@ serviceRouter.get('/',async (req,res)=>{
                         profilePicture:true,
                         username:true,
                         availabilitySchedule:true,
+                        receivedRatings:true
                     }
                 },
                 skill:{

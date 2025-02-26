@@ -36,9 +36,9 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
     console.log("Request Body:", req.body);
     console.log("Uploaded File:", req.file);
     const requiredBody = zod_1.z.object({
-        username: zod_1.z.string().min(3).max(10),
+        username: zod_1.z.string().min(3).max(20),
         email: zod_1.z.string().email(),
-        password: zod_1.z.string().min(3).max(10),
+        password: zod_1.z.string().min(3).max(20),
         bio: zod_1.z.string(),
         skillsSought: zod_1.z.optional(zod_1.z.array(zod_1.z.number())),
         skillsOffered: zod_1.z.optional(zod_1.z.array(zod_1.z.number())),

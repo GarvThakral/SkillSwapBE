@@ -64,7 +64,7 @@ exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, (req, re
     }
 }));
 exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { receiverId, skillId, description, workingDays, recieverToken } = req.body;
+    const { receiverId, skillId, description, workingDays, recieverToken, serviceId } = req.body;
     // @ts-ignore
     const userId = req.id;
     try {
@@ -77,7 +77,8 @@ exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res)
                 workingDays,
                 recieverToken,
                 status: "PENDING",
-                type: "TEACH"
+                type: "TEACH",
+                serviceId
             }
         });
         res.json({

@@ -54,7 +54,7 @@ teachRequestRouter.get('/get',userMiddleware,async (req,res)=>{
 });
 
 teachRequestRouter.post('/',userMiddleware,async (req,res)=>{
-    const { receiverId , skillId , description , workingDays , recieverToken } = req.body;
+    const { receiverId , skillId , description , workingDays , recieverToken , serviceId} = req.body;
     // @ts-ignore
     const userId = req.id;
 
@@ -68,7 +68,8 @@ teachRequestRouter.post('/',userMiddleware,async (req,res)=>{
                 workingDays,
                 recieverToken,
                 status:"PENDING",
-                type: "TEACH"
+                type: "TEACH",
+                serviceId
             }
         })
         res.json({
@@ -158,8 +159,6 @@ teachRequestRouter.post('/deny' , userMiddleware , async (req,res)=>{
         });
     }
 });
-
-
 
 teachRequestRouter.delete('/',async (req,res)=>{
     const {teachRequestId} = req.body;

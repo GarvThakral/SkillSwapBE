@@ -32,6 +32,7 @@ exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, f
                         profilePicture: true,
                         username: true,
                         availabilitySchedule: true,
+                        receivedRatings: true
                     }
                 },
                 skill: {
