@@ -48,6 +48,11 @@ exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, (req, re
                         description: true,
                         proficiencyLevel: true
                     }
+                },
+                serviceRel: {
+                    select: {
+                        id: true
+                    }
                 }
             }
         });

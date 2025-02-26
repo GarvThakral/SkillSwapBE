@@ -18,7 +18,8 @@ transactionRouter.post('/',userMiddleware,async (req,res)=>{
         recieverSkillId : z.optional(z.number()),
         senderAmount : z.number(),
         recieverAmount : z.number(),
-        requestId:z.number()
+        requestId:z.number(),
+        serviceId:z.number()
     })
     try{
         const parsedBody = requiredBody.parse(req.body);
@@ -29,7 +30,8 @@ transactionRouter.post('/',userMiddleware,async (req,res)=>{
             recieverSkillId,
             senderAmount,
             recieverAmount,
-            requestId
+            requestId,
+            serviceId
         } = parsedBody;
 
         try{
@@ -42,7 +44,8 @@ transactionRouter.post('/',userMiddleware,async (req,res)=>{
                         recieverSkillId,
                         senderAmount,
                         recieverAmount,
-                        requestId
+                        requestId,
+                        serviceId
                     }
                 }) 
                 res.json({
@@ -141,90 +144,104 @@ transactionRouter.post('/pending',userMiddleware,async (req,res)=>{
         });
     }
 });
-transactionRouter.post('/complete', userMiddleware , async (req,res)=>{
-    const { id , senderId , recieverId , amount  } = req.body;
-    try{
-        
-        const transaction = await prisma.transactions.update({
-            where:{
-                id,
-                senderId,
-                recieverId
-            },
-            data:{
-                status:"COMPLETED"
-            }
-        });
-        
-        if(transaction.type == "TEACH_REQUEST"){
-            
-            const completedRequest = await prisma.teachRequest.update({
-                data:{
-                    status:"COMPLETED"
-                },
-                where:{
-                    id:transaction.requestId
-                } 
-            })
+transactionRouter.post("/complete", userMiddleware, async (req, res) => {
+    const { id, senderId, recieverId, amount } = req.body;
 
-            const updateTokenUser1 = await prisma.user.update({
-                where:{
-                    id:senderId,
-                },
-                data:{
-                    tokens:{
-                        decrement:amount
-                    }
-                }
-            });
-            const updateTokenUser2 = await prisma.user.update({
-                where:{
-                    id:recieverId,
-                },
-                data:{
-                    tokens:{
-                        increment:amount
-                    }
-                }
-            });
-            res.json({
-                message:"Transaction complete"
+    try {
+        // Update transaction status to COMPLETED
+        const transaction = await prisma.transactions.update({
+            where: { id },
+            data: { status: "COMPLETED" },
         });
-        }else if( transaction.type == "TRADE_REQUEST"){
-            const netAmount =  transaction.senderAmount - transaction.recieverAmount
-            const updateTokenUser1 = await prisma.user.update({
-                where:{
-                    id:senderId,
-                },
-                data:{
-                    tokens:{
-                        increment:netAmount
-                    }
-                }
+
+        console.log("Transaction Updated:", transaction);
+
+        if (transaction.type === "TEACH_REQUEST") {
+            const teachRequests = await prisma.teachRequest.findMany({
+                where: { serviceId: transaction.serviceId }
             });
-            const updateTokenUser2 = await prisma.user.update({
-                where:{
-                    id:recieverId,
-                },
-                data:{
-                    tokens:{
-                        decrement:netAmount
-                    }
-                }
+
+            await prisma.teachRequest.update({
+                where: { id: transaction.requestId },
+                data: { status: "COMPLETED" }
             });
-            res.json({
-                message:"Transaction complete"
+
+            if (teachRequests.length > 0) {
+                await prisma.teachRequest.deleteMany({
+                    where: { serviceId: transaction.serviceId }
+                });
+            }
+
+            await prisma.user.update({
+                where: { id: senderId },
+                data: { tokens: { decrement: amount } }
             });
+
+            await prisma.user.update({
+                where: { id: recieverId },
+                data: { tokens: { increment: amount } }
+            });
+
+            await prisma.transactions.deleteMany({
+                where: { serviceId: transaction.serviceId }
+            });
+            const deletedService = await prisma.serviceRequest.delete({
+                where: { id: transaction.serviceId }
+            });
+
+            console.log("Deleted service:", deletedService);
+            console.log("Teach request transaction completed.");
+            res.json({ message: "Transaction complete" });
+            return;
+        } 
+        
+        else if (transaction.type === "TRADE_REQUEST") {
+            const netAmount = transaction.senderAmount - transaction.recieverAmount;
+
+            await prisma.user.update({
+                where: { id: senderId },
+                data: { tokens: { increment: netAmount } }
+            });
+
+            await prisma.user.update({
+                where: { id: recieverId },
+                data: { tokens: { decrement: netAmount } }
+            });
+
+            await prisma.teachRequest.deleteMany({
+                where: { serviceId: transaction.serviceId }
+            });
+
+            await prisma.tradeRequest.deleteMany({
+                where: { serviceId: transaction.serviceId }
+            });
+
+            await prisma.transactions.deleteMany({
+                where: { serviceId: transaction.serviceId }
+            });
+
+            const deletedService = await prisma.serviceRequest.delete({
+                where: { id: transaction.serviceId }
+            });
+
+            console.log("Deleted service:", deletedService);
+            res.json({ message: "Transaction complete" });
+            return;
+        } 
+        
+        else {
+            res.status(400).json({ error: "Unknown transaction type" });
+            return 
         }
 
-
-    }catch(e){
-        console.log(e)
-        res.status(304).json({
-            error:e
-        });
+    } catch (e) {
+        console.error("Error in completing transaction:", e);
+        res.status(500).json({ e });
+        return;
     }
-})
+});
+
+
 transactionRouter.get('/:id',userMiddleware,async (req,res)=>{
     // @ts-ignore
     const userId = req.id;

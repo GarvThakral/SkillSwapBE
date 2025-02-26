@@ -80,6 +80,11 @@ tradeRequestRouter.get('/' , userMiddleware , async (req,res)=>{
                         description:true,
                         proficiencyLevel:true
                     }
+                },
+                serviceRel:{
+                    select:{
+                        id:true
+                    }
                 }
                 
             }

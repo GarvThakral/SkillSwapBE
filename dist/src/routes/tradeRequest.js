@@ -86,6 +86,11 @@ exports.tradeRequestRouter.get('/', userMiddleware_1.userMiddleware, (req, res) 
                         description: true,
                         proficiencyLevel: true
                     }
+                },
+                serviceRel: {
+                    select: {
+                        id: true
+                    }
                 }
             }
         });
