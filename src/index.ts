@@ -2,15 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 
-import { userRouter } from './src/routes/user';
-import { transactionRouter } from './src/routes/transactions';
-import { skillRouter } from './src/routes/skills';
-import { serviceRouter } from './src/routes/serviceRequest';
-import { teachRequestRouter } from './src/routes/teachRequest';
-import { tradeRequestRouter } from './src/routes/tradeRequest';
-import { messageRouter } from './src/routes/message';
-import { meetingRouter } from './src/routes/createMeeting';
-import { paymentRouter } from './src/routes/payment';
+import { userRouter } from './routes/user';
+import { transactionRouter } from './routes/transactions';
+import { skillRouter } from './routes/skills';
+import { serviceRouter } from './routes/serviceRequest';
+import { teachRequestRouter } from './routes/teachRequest';
+import { tradeRequestRouter } from './routes/tradeRequest';
+import { messageRouter } from './routes/message';
+import { meetingRouter } from './routes/createMeeting';
+import { paymentRouter } from './routes/payment';
 
 export const app = express();
 const prisma = new PrismaClient();
