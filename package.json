@@ -4,8 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npx tsc -b && node ./dist/index.js",
-    "postinstall": "prisma generate",
-    "start": "npx tsc -b & node dist/ws.js"
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -34,8 +33,6 @@
     "node-fetch": "^2.7.0",
     "razorpay": "^2.9.5",
     "typescript": "^5.7.2",
-    "websocket": "^1.0.35",
-    "ws": "^8.18.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
