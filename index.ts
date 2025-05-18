@@ -12,7 +12,7 @@ import { messageRouter } from './src/routes/message';
 import { meetingRouter } from './src/routes/createMeeting';
 import { paymentRouter } from './src/routes/payment';
 
-const app = express();
+export const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
