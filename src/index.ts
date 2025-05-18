@@ -12,11 +12,14 @@ import { messageRouter } from './routes/message';
 import { meetingRouter } from './routes/createMeeting';
 import { paymentRouter } from './routes/payment';
 
-export const app = express();
+const app = express();
 const prisma = new PrismaClient();
 
+// Middleware
 app.use(express.json());
 app.use(cors());
+
+// Routers
 app.use('/user', userRouter);
 app.use('/transaction', transactionRouter);
 app.use('/teachRequest', teachRequestRouter);
@@ -26,11 +29,20 @@ app.use('/messages', messageRouter);
 app.use('/skill', skillRouter);
 app.use('/service', serviceRouter);
 app.use('/payment', paymentRouter);
-app.get('/health', async (req, res) => {
-    console.log('Health check');})
-app.get('/', (req, res) => {
-    res.send('HTTP API is running');
+
+// Health check
+app.get('/health', async (_req, res) => {
+  console.log('Health check');
+  res.status(200).json({ status: 'ok' });
 });
 
+// Root
+app.get('/', (_req, res) => {
+  res.send('HTTP API is running');
+});
 
-app.listen(3000, () => console.log(`HTTP Server running on port 30001`));
+// Listen on dynamic port with fallback
+const PORT = Number(process.env.PORT) || 3000;
+app.listen(PORT, () => {
+  console.log(`HTTP Server running on port ${PORT}`);
+});
