@@ -157,22 +157,18 @@ exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (re
         });
         console.log("Transaction Updated:", transaction);
         if (transaction.type === "TEACH_REQUEST") {
-            // Find all teach requests linked to this service
             const teachRequests = yield prisma.teachRequest.findMany({
                 where: { serviceId: transaction.serviceId }
             });
-            // Update teach request status
             yield prisma.teachRequest.update({
                 where: { id: transaction.requestId },
                 data: { status: "COMPLETED" }
             });
-            // Delete all teach requests linked to the service
             if (teachRequests.length > 0) {
                 yield prisma.teachRequest.deleteMany({
                     where: { serviceId: transaction.serviceId }
                 });
             }
-            // Handle token transfer
             yield prisma.user.update({
                 where: { id: senderId },
                 data: { tokens: { decrement: amount } }
@@ -181,21 +177,19 @@ exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (re
                 where: { id: recieverId },
                 data: { tokens: { increment: amount } }
             });
-            // **Delete transactions referencing serviceId first**
             yield prisma.transactions.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            // **Now delete the service request**
             const deletedService = yield prisma.serviceRequest.delete({
                 where: { id: transaction.serviceId }
             });
             console.log("Deleted service:", deletedService);
             console.log("Teach request transaction completed.");
-            return res.json({ message: "Transaction complete" });
+            res.json({ message: "Transaction complete" });
+            return;
         }
         else if (transaction.type === "TRADE_REQUEST") {
             const netAmount = transaction.senderAmount - transaction.recieverAmount;
-            // Handle trade request token transfer
             yield prisma.user.update({
                 where: { id: senderId },
                 data: { tokens: { increment: netAmount } }
@@ -204,32 +198,31 @@ exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (re
                 where: { id: recieverId },
                 data: { tokens: { decrement: netAmount } }
             });
-            // Delete related teachRequests
             yield prisma.teachRequest.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            // Delete related tradeRequests
             yield prisma.tradeRequest.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            // **Delete transactions referencing serviceId first**
             yield prisma.transactions.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            // **Now delete the service request**
             const deletedService = yield prisma.serviceRequest.delete({
                 where: { id: transaction.serviceId }
             });
             console.log("Deleted service:", deletedService);
-            return res.json({ message: "Transaction complete" });
+            res.json({ message: "Transaction complete" });
+            return;
         }
         else {
-            return res.status(400).json({ error: "Unknown transaction type" });
+            res.status(400).json({ error: "Unknown transaction type" });
+            return;
         }
     }
     catch (e) {
         console.error("Error in completing transaction:", e);
-        return res.status(500).json({ error: e.message || "An error occurred" });
+        res.status(500).json({ e });
+        return;
     }
 }));
 exports.transactionRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
