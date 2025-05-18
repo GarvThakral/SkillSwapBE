@@ -26,7 +26,8 @@ app.use('/messages', messageRouter);
 app.use('/skill', skillRouter);
 app.use('/service', serviceRouter);
 app.use('/payment', paymentRouter);
-
+app.get('/health', async (req, res) => {
+    console.log('Health check');})
 app.get('/', (req, res) => {
     res.send('HTTP API is running');
 });
