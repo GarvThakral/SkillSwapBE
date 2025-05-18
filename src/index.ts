@@ -31,5 +31,5 @@ app.get('/', (req, res) => {
     res.send('HTTP API is running');
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT =  3000;
 app.listen(PORT, () => console.log(`HTTP Server running on port ${PORT}`));
