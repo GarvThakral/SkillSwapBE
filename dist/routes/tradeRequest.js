@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tradeRequestRouter = void 0;
 const express_1 = require("express");
@@ -15,12 +6,12 @@ const userMiddleware_1 = require("../middleware/userMiddleware");
 const client_1 = require("@prisma/client");
 exports.tradeRequestRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.tradeRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.tradeRequestRouter.post('/', userMiddleware_1.userMiddleware, async (req, res) => {
     const { receiverId, senderSkillId, receiverSkillId, description, workingDays, senderToken, recieverToken, serviceId } = req.body;
     // @ts-ignore
     const userId = req.id;
     try {
-        const tradeReq = yield prisma.tradeRequest.create({
+        const tradeReq = await prisma.tradeRequest.create({
             data: {
                 senderId: userId,
                 receiverId,
@@ -45,12 +36,12 @@ exports.tradeRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res)
             error: e
         });
     }
-}));
-exports.tradeRequestRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.tradeRequestRouter.get('/', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore;
     const userId = req.id;
     try {
-        const response = yield prisma.tradeRequest.findMany({
+        const response = await prisma.tradeRequest.findMany({
             where: {
                 receiverId: userId
             },
@@ -104,13 +95,13 @@ exports.tradeRequestRouter.get('/', userMiddleware_1.userMiddleware, (req, res) 
             error: e
         });
     }
-}));
-exports.tradeRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.tradeRequestRouter.post('/accept', userMiddleware_1.userMiddleware, async (req, res) => {
     //@ts-ignore
     const userId = req.id;
     const { requestId } = req.body;
     try {
-        const tradeReq = yield prisma.tradeRequest.update({
+        const tradeReq = await prisma.tradeRequest.update({
             where: {
                 id: requestId,
             },
@@ -127,13 +118,13 @@ exports.tradeRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req
             error: e
         });
     }
-}));
-exports.tradeRequestRouter.post('/pending', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.tradeRequestRouter.post('/pending', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const { receiverId, receiverSkillId, senderSkillId } = req.body;
     try {
-        const pendingTrade = yield prisma.tradeRequest.findFirst({
+        const pendingTrade = await prisma.tradeRequest.findFirst({
             where: {
                 senderId: userId,
                 receiverId,
@@ -157,14 +148,14 @@ exports.tradeRequestRouter.post('/pending', userMiddleware_1.userMiddleware, (re
             error: e
         });
     }
-}));
-exports.tradeRequestRouter.post('/deny', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.tradeRequestRouter.post('/deny', userMiddleware_1.userMiddleware, async (req, res) => {
     console.log("Reached");
     //@ts-ignore
     const userId = req.id;
     const { requestId } = req.body;
     try {
-        const tradeReq = yield prisma.tradeRequest.delete({
+        const tradeReq = await prisma.tradeRequest.delete({
             where: {
                 id: requestId,
             }
@@ -179,11 +170,11 @@ exports.tradeRequestRouter.post('/deny', userMiddleware_1.userMiddleware, (req, 
             error: e
         });
     }
-}));
-exports.tradeRequestRouter.delete('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.tradeRequestRouter.delete('/', async (req, res) => {
     const { tradeRequestId } = req.body;
     try {
-        const deletedRequest = yield prisma.tradeRequest.delete({
+        const deletedRequest = await prisma.tradeRequest.delete({
             where: {
                 id: tradeRequestId
             }
@@ -197,4 +188,4 @@ exports.tradeRequestRouter.delete('/', (req, res) => __awaiter(void 0, void 0, v
             error: e
         });
     }
-}));
+});

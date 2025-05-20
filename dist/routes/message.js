@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.messageRouter = void 0;
 const express_1 = require("express");
@@ -16,7 +7,7 @@ const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 exports.messageRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.messageRouter.post('/', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const requiredBody = zod_1.z.object({
@@ -31,7 +22,7 @@ exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
         const { senderId, receiverId, content, type, meetingId } = parsedBody;
         try {
             if (senderId) {
-                const newMessage = yield prisma.message.create({
+                const newMessage = await prisma.message.create({
                     data: {
                         senderId,
                         receiverId,
@@ -45,7 +36,7 @@ exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
                 });
             }
             else {
-                const newMessage = yield prisma.message.create({
+                const newMessage = await prisma.message.create({
                     data: {
                         senderId: userId,
                         receiverId,
@@ -74,8 +65,8 @@ exports.messageRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
         });
         return;
     }
-}));
-exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const requiredBody = zod_1.z.object({
@@ -85,7 +76,7 @@ exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (r
         const parsedBody = requiredBody.parse(req.body);
         const { receiverId } = parsedBody;
         try {
-            const allMessages = yield prisma.message.findMany({
+            const allMessages = await prisma.message.findMany({
                 where: {
                     OR: [
                         { senderId: userId,
@@ -132,12 +123,12 @@ exports.messageRouter.post('/fetchMessages', userMiddleware_1.userMiddleware, (r
         });
         return;
     }
-}));
-exports.messageRouter.get('/users', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.messageRouter.get('/users', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     try {
-        const users = yield prisma.message.findMany({
+        const users = await prisma.message.findMany({
             where: {
                 OR: [
                     { senderId: userId },
@@ -158,7 +149,7 @@ exports.messageRouter.get('/users', userMiddleware_1.userMiddleware, (req, res) 
                 uniqueUserArray.push(item.senderId);
             }
         });
-        const userDetails = yield prisma.user.findMany({
+        const userDetails = await prisma.user.findMany({
             where: {
                 id: { in: uniqueUserArray }
             },
@@ -177,13 +168,13 @@ exports.messageRouter.get('/users', userMiddleware_1.userMiddleware, (req, res) 
             message: e
         });
     }
-}));
-exports.messageRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.messageRouter.get('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const messageId = parseInt(req.params.id);
     try {
-        const idMessage = yield prisma.message.findFirst({
+        const idMessage = await prisma.message.findFirst({
             where: {
                 id: messageId,
                 senderId: userId
@@ -201,13 +192,13 @@ exports.messageRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) =>
         });
         return;
     }
-}));
-exports.messageRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.messageRouter.delete('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const messageId = parseInt(req.params.id);
     try {
-        const deletedMessage = yield prisma.message.delete({
+        const deletedMessage = await prisma.message.delete({
             where: {
                 id: messageId,
                 senderId: userId
@@ -225,4 +216,4 @@ exports.messageRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res)
         });
         return;
     }
-}));
+});

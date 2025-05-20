@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -32,7 +23,7 @@ cloudinary_1.v2.config({
     api_secret: '-HxRiJj8VPiYS94xCmPRrylng1A'
 });
 // @ts-ignore
-exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.userRouter.post('/signup', upload.single('profilePicture'), async (req, res) => {
     console.log("Request Body:", req.body);
     console.log("Uploaded File:", req.file);
     const requiredBody = zod_1.z.object({
@@ -53,12 +44,12 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
         if (!file) {
             return res.status(400).json({ error: "Profile picture is required." });
         }
-        const cloudinaryResponse = yield new Promise((resolve, reject) => {
+        const cloudinaryResponse = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary_1.v2.uploader.upload_stream({ folder: 'profile_pictures' }, (error, result) => {
                 if (error) {
                     return reject(error);
                 }
-                if (!(result === null || result === void 0 ? void 0 : result.secure_url)) {
+                if (!result?.secure_url) {
                     return reject(new Error("Image upload failed or result is invalid."));
                 }
                 resolve(result.secure_url);
@@ -67,17 +58,17 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
         });
         const profilePicture = cloudinaryResponse;
         // Check if user exists
-        const userExists = yield prisma.user.findFirst({
+        const userExists = await prisma.user.findFirst({
             where: { username },
         });
         if (!userExists) {
-            const emailExists = yield prisma.user.findFirst({
+            const emailExists = await prisma.user.findFirst({
                 where: { email },
             });
             if (!emailExists) {
-                const hashedPassword = yield (0, bcrypt_1.hash)(password, 5);
+                const hashedPassword = await (0, bcrypt_1.hash)(password, 5);
                 // Save user with profile picture URL
-                const user = yield prisma.user.create({
+                const user = await prisma.user.create({
                     data: {
                         username,
                         email,
@@ -86,10 +77,10 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
                         tokens: 100,
                         bio,
                         skillsSought: {
-                            connect: skillsSought === null || skillsSought === void 0 ? void 0 : skillsSought.map((id) => ({ id })),
+                            connect: skillsSought?.map((id) => ({ id })),
                         },
                         skillsOffered: {
-                            connect: skillsOffered === null || skillsOffered === void 0 ? void 0 : skillsOffered.map((id) => ({ id })),
+                            connect: skillsOffered?.map((id) => ({ id })),
                         },
                         availabilitySchedule,
                     },
@@ -111,18 +102,18 @@ exports.userRouter.post('/signup', upload.single('profilePicture'), (req, res) =
         res.status(400).json({ error: 'Invalid request body', details: e });
         return;
     }
-}));
-exports.userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.post('/signin', async (req, res) => {
     const { username, password } = req.body;
     try {
-        const userExists = yield prisma.user.findFirst({
+        const userExists = await prisma.user.findFirst({
             where: {
                 username
             }
         });
         if (userExists) {
             const userId = userExists.id;
-            const correctPassword = yield (0, bcrypt_1.compare)(password, userExists.password);
+            const correctPassword = await (0, bcrypt_1.compare)(password, userExists.password);
             if (correctPassword && JWT_SECRET) {
                 const token = (0, jsonwebtoken_1.sign)({ userId }, JWT_SECRET);
                 res.json({
@@ -150,12 +141,12 @@ exports.userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 
             error: e
         });
     }
-}));
-exports.userRouter.get('/me', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.get('/me', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     try {
-        const user = yield prisma.user.findFirst({
+        const user = await prisma.user.findFirst({
             where: {
                 id: userId
             }
@@ -179,12 +170,12 @@ exports.userRouter.get('/me', userMiddleware_1.userMiddleware, (req, res) => __a
         });
         return;
     }
-}));
-exports.userRouter.delete('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.delete('/', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     try {
-        const deletedUser = yield prisma.user.delete({
+        const deletedUser = await prisma.user.delete({
             where: {
                 id: userId
             }
@@ -200,11 +191,11 @@ exports.userRouter.delete('/', userMiddleware_1.userMiddleware, (req, res) => __
         });
         return;
     }
-}));
-exports.userRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.get('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     const userId = parseInt(req.params.id);
     try {
-        const user = yield prisma.user.findFirst({
+        const user = await prisma.user.findFirst({
             where: {
                 id: userId
             },
@@ -226,8 +217,8 @@ exports.userRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __
         });
         return;
     }
-}));
-exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     const userId = parseInt(req.params.id);
     const requiredBody = zod_1.z.object({
         email: zod_1.z.string().email(),
@@ -241,7 +232,7 @@ exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __
         const parsedBody = requiredBody.parse(req.body);
         const { email, profilePicture, bio, skillsSought, skillsOffered, availabilitySchedule, } = parsedBody;
         try {
-            const user = yield prisma.user.update({
+            const user = await prisma.user.update({
                 where: {
                     id: userId
                 },
@@ -275,13 +266,13 @@ exports.userRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __
             error: e
         });
     }
-}));
-exports.userRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
@@ -292,7 +283,7 @@ exports.userRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, (
             });
             return;
         }
-        const updatedUser = yield prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -313,13 +304,13 @@ exports.userRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, (
         });
         return;
     }
-}));
-exports.userRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
@@ -330,7 +321,7 @@ exports.userRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, 
             });
             return;
         }
-        const updatedUser = yield prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -351,19 +342,19 @@ exports.userRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, 
         });
         return;
     }
-}));
-exports.userRouter.delete('/:id/skills/sought', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.delete('/:id/skills/sought', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
         });
         if (skill) {
-            const updatedUser = yield prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: {
                     id: userId,
                 },
@@ -389,19 +380,19 @@ exports.userRouter.delete('/:id/skills/sought', userMiddleware_1.userMiddleware,
         });
         return;
     }
-}));
-exports.userRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
         });
         if (skill) {
-            const updatedUser = yield prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: {
                     id: userId,
                 },
@@ -427,12 +418,12 @@ exports.userRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware
         });
         return;
     }
-}));
-exports.userRouter.post('/tokens', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.userRouter.post('/tokens', async (req, res) => {
     // @ts-ignore
     const { userId } = req.body;
     try {
-        const UsersTokens = yield prisma.user.findFirst({
+        const UsersTokens = await prisma.user.findFirst({
             where: {
                 id: userId
             },
@@ -449,4 +440,4 @@ exports.userRouter.post('/tokens', (req, res) => __awaiter(void 0, void 0, void 
             error: e
         });
     }
-}));
+});

@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.transactionRouter = void 0;
 const express_1 = require("express");
@@ -16,7 +7,7 @@ const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 exports.transactionRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     console.log(userId);
@@ -36,7 +27,7 @@ exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, (req, res) 
         const { type, recieverId, senderSkillId, recieverSkillId, senderAmount, recieverAmount, requestId, serviceId } = parsedBody;
         try {
             if (type == "TEACH_REQUEST") {
-                const newTransaction = yield prisma.transactions.create({
+                const newTransaction = await prisma.transactions.create({
                     data: {
                         type,
                         senderId: userId,
@@ -54,7 +45,7 @@ exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, (req, res) 
                 });
                 return;
             }
-            const newTransaction = yield prisma.transactions.create({
+            const newTransaction = await prisma.transactions.create({
                 data: {
                     type,
                     senderId: userId,
@@ -85,13 +76,13 @@ exports.transactionRouter.post('/', userMiddleware_1.userMiddleware, (req, res) 
         });
         return;
     }
-}));
-exports.transactionRouter.get('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.transactionRouter.get('/', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     console.log(userId);
     try {
-        const userTransactions = yield prisma.transactions.findMany({
+        const userTransactions = await prisma.transactions.findMany({
             where: {
                 OR: [
                     { senderId: userId },
@@ -111,15 +102,15 @@ exports.transactionRouter.get('/', userMiddleware_1.userMiddleware, (req, res) =
         });
         return;
     }
-}));
-exports.transactionRouter.post('/pending', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.transactionRouter.post('/pending', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const { user2Id } = req.body;
     console.log(userId);
     console.log(user2Id);
     try {
-        const transaction = yield prisma.transactions.findFirst({
+        const transaction = await prisma.transactions.findFirst({
             where: {
                 status: "PENDING",
                 OR: [
@@ -146,41 +137,41 @@ exports.transactionRouter.post('/pending', userMiddleware_1.userMiddleware, (req
             error: e
         });
     }
-}));
-exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, async (req, res) => {
     const { id, senderId, recieverId, amount } = req.body;
     try {
         // Update transaction status to COMPLETED
-        const transaction = yield prisma.transactions.update({
+        const transaction = await prisma.transactions.update({
             where: { id },
             data: { status: "COMPLETED" },
         });
         console.log("Transaction Updated:", transaction);
         if (transaction.type === "TEACH_REQUEST") {
-            const teachRequests = yield prisma.teachRequest.findMany({
+            const teachRequests = await prisma.teachRequest.findMany({
                 where: { serviceId: transaction.serviceId }
             });
-            yield prisma.teachRequest.update({
+            await prisma.teachRequest.update({
                 where: { id: transaction.requestId },
                 data: { status: "COMPLETED" }
             });
             if (teachRequests.length > 0) {
-                yield prisma.teachRequest.deleteMany({
+                await prisma.teachRequest.deleteMany({
                     where: { serviceId: transaction.serviceId }
                 });
             }
-            yield prisma.user.update({
+            await prisma.user.update({
                 where: { id: senderId },
                 data: { tokens: { decrement: amount } }
             });
-            yield prisma.user.update({
+            await prisma.user.update({
                 where: { id: recieverId },
                 data: { tokens: { increment: amount } }
             });
-            yield prisma.transactions.deleteMany({
+            await prisma.transactions.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            const deletedService = yield prisma.serviceRequest.delete({
+            const deletedService = await prisma.serviceRequest.delete({
                 where: { id: transaction.serviceId }
             });
             console.log("Deleted service:", deletedService);
@@ -190,24 +181,24 @@ exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (re
         }
         else if (transaction.type === "TRADE_REQUEST") {
             const netAmount = transaction.senderAmount - transaction.recieverAmount;
-            yield prisma.user.update({
+            await prisma.user.update({
                 where: { id: senderId },
                 data: { tokens: { increment: netAmount } }
             });
-            yield prisma.user.update({
+            await prisma.user.update({
                 where: { id: recieverId },
                 data: { tokens: { decrement: netAmount } }
             });
-            yield prisma.teachRequest.deleteMany({
+            await prisma.teachRequest.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            yield prisma.tradeRequest.deleteMany({
+            await prisma.tradeRequest.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            yield prisma.transactions.deleteMany({
+            await prisma.transactions.deleteMany({
                 where: { serviceId: transaction.serviceId }
             });
-            const deletedService = yield prisma.serviceRequest.delete({
+            const deletedService = await prisma.serviceRequest.delete({
                 where: { id: transaction.serviceId }
             });
             console.log("Deleted service:", deletedService);
@@ -224,13 +215,13 @@ exports.transactionRouter.post("/complete", userMiddleware_1.userMiddleware, (re
         res.status(500).json({ e });
         return;
     }
-}));
-exports.transactionRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.transactionRouter.get('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const transactionId = parseInt(req.params.id);
     try {
-        const transactionDetails = yield prisma.transactions.findFirst({
+        const transactionDetails = await prisma.transactions.findFirst({
             where: {
                 id: transactionId,
                 OR: [
@@ -250,4 +241,4 @@ exports.transactionRouter.get('/:id', userMiddleware_1.userMiddleware, (req, res
         });
         return;
     }
-}));
+});

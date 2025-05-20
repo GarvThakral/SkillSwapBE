@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.skillRouter = void 0;
 const client_1 = require("@prisma/client");
@@ -16,7 +7,7 @@ const userMiddleware_1 = require("../middleware/userMiddleware");
 const zod_1 = require("zod");
 exports.skillRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.skillRouter.post("/", userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.skillRouter.post("/", userMiddleware_1.userMiddleware, async (req, res) => {
     const requiredBody = zod_1.z.object({
         title: zod_1.z.string().min(3),
         description: zod_1.z.string().min(10),
@@ -27,7 +18,7 @@ exports.skillRouter.post("/", userMiddleware_1.userMiddleware, (req, res) => __a
     // @ts-ignore
     const userId = req.id;
     try {
-        const newskill = yield prisma.skill.create({
+        const newskill = await prisma.skill.create({
             data: {
                 userId,
                 title,
@@ -47,10 +38,10 @@ exports.skillRouter.post("/", userMiddleware_1.userMiddleware, (req, res) => __a
         });
         return;
     }
-}));
-exports.skillRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillRouter.get('/', async (req, res) => {
     try {
-        const skills = yield prisma.skill.findMany({
+        const skills = await prisma.skill.findMany({
             where: {
                 userId: 1
             }
@@ -64,11 +55,11 @@ exports.skillRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, fun
             error: e
         });
     }
-}));
-exports.skillRouter.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillRouter.get("/:id", async (req, res) => {
     const skillId = parseInt(req.params.id);
     try {
-        const skill = yield prisma.skill.findUnique({ where: { id: skillId } });
+        const skill = await prisma.skill.findUnique({ where: { id: skillId } });
         if (!skill) {
             res.status(404).json({ message: "Skill not found" });
             return;
@@ -80,12 +71,12 @@ exports.skillRouter.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, 
         res.status(500).json({ error: "Failed to fetch skill" });
         return;
     }
-}));
-exports.skillRouter.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillRouter.put("/:id", async (req, res) => {
     const skillId = parseInt(req.params.id);
     const { title, description, proficiencyLevel } = req.body;
     try {
-        const updatedSkill = yield prisma.skill.update({
+        const updatedSkill = await prisma.skill.update({
             where: { id: skillId },
             data: { title, description, proficiencyLevel },
         });
@@ -94,14 +85,14 @@ exports.skillRouter.put("/:id", (req, res) => __awaiter(void 0, void 0, void 0, 
     catch (e) {
         res.status(404).json({ message: "Skill not found or failed to update" });
     }
-}));
-exports.skillRouter.delete("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillRouter.delete("/:id", async (req, res) => {
     const skillId = parseInt(req.params.id);
     try {
-        const deletedSkill = yield prisma.skill.delete({ where: { id: skillId } });
+        const deletedSkill = await prisma.skill.delete({ where: { id: skillId } });
         res.json({ message: "Skill deleted", deletedSkill });
     }
     catch (e) {
         res.status(404).json({ message: "Skill not found or failed to delete" });
     }
-}));
+});

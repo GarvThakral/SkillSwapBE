@@ -36,13 +36,10 @@ app.get('/health', async (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Root
 app.get('/', (_req, res) => {
   res.send('HTTP API is running');
 });
 
-// Listen on dynamic port with fallback
-const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => {
-  console.log(`HTTP Server running on port ${PORT}`);
+app.listen(Number(process.env.PORT) || 3000, '0.0.0.0', () => {
+  console.log(`Server running on port ${process.env.PORT || 3000}`);
 });

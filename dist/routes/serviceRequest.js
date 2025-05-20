@@ -4,15 +4,6 @@
 // GET /service-requests/:id: Fetch a specific service request by ID.
 // PUT /service-requests/:id: Update a service request (e.g., change status from PENDING to COMPLETED).
 // DELETE /service-requests/:id: Cancel or delete a service request.
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.serviceRouter = void 0;
 const express_1 = require("express");
@@ -21,10 +12,10 @@ const zod_1 = require("zod");
 const client_1 = require("@prisma/client");
 exports.serviceRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.serviceRouter.get('/', async (req, res) => {
     console.log("Reached");
     try {
-        const serviceRequests = yield prisma.serviceRequest.findMany({
+        const serviceRequests = await prisma.serviceRequest.findMany({
             include: {
                 user: {
                     select: {
@@ -55,8 +46,8 @@ exports.serviceRouter.get('/', (req, res) => __awaiter(void 0, void 0, void 0, f
             message: "error " + e
         });
     }
-}));
-exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, async (req, res) => {
     const requiredBody = zod_1.z.object({
         skillId: zod_1.z.number(),
         description: zod_1.z.string(),
@@ -68,7 +59,7 @@ exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
         const parsedBody = requiredBody.parse(req.body);
         const { skillId, description, tokenPrice } = parsedBody;
         try {
-            const newRequest = yield prisma.serviceRequest.create({
+            const newRequest = await prisma.serviceRequest.create({
                 data: {
                     requesterId: userId,
                     skillId,
@@ -96,13 +87,13 @@ exports.serviceRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => _
             error: e,
         });
     }
-}));
-exports.serviceRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.serviceRouter.get('/:id', async (req, res) => {
     console.log("Reached");
     // @ts-ignore
     const serviceId = parseInt(req.params.id);
     try {
-        const serviceRequest = yield prisma.serviceRequest.findFirst({
+        const serviceRequest = await prisma.serviceRequest.findFirst({
             where: {
                 id: serviceId
             },
@@ -137,8 +128,8 @@ exports.serviceRouter.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0
             message: "error " + e
         });
     }
-}));
-exports.serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.serviceRouter.put('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     const serviceId = parseInt(req.params.id);
     const requiredBody = zod_1.z.object({
         skillId: zod_1.z.number(),
@@ -150,7 +141,7 @@ exports.serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) =>
         const parsedBody = requiredBody.parse(req.body);
         const { skillId, status } = parsedBody;
         try {
-            const requestFound = yield prisma.serviceRequest.update({
+            const requestFound = await prisma.serviceRequest.update({
                 where: {
                     id: serviceId,
                     requesterId: userId
@@ -180,13 +171,13 @@ exports.serviceRouter.put('/:id', userMiddleware_1.userMiddleware, (req, res) =>
             message: "Invalid input"
         });
     }
-}));
-exports.serviceRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.serviceRouter.delete('/:id', userMiddleware_1.userMiddleware, async (req, res) => {
     const serviceId = parseInt(req.params.id);
     // @ts-ignore
     const userId = req.id;
     try {
-        const deletedService = yield prisma.serviceRequest.delete({
+        const deletedService = await prisma.serviceRequest.delete({
             where: {
                 id: serviceId,
                 requesterId: userId
@@ -205,4 +196,4 @@ exports.serviceRouter.delete('/:id', userMiddleware_1.userMiddleware, (req, res)
         });
         return;
     }
-}));
+});

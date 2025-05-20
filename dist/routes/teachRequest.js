@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.teachRequestRouter = void 0;
 const express_1 = require("express");
@@ -15,12 +6,12 @@ const userMiddleware_1 = require("../middleware/userMiddleware");
 const client_1 = require("@prisma/client");
 exports.teachRequestRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     try {
         console.log("Reached");
-        const teachRequests = yield prisma.teachRequest.findMany({
+        const teachRequests = await prisma.teachRequest.findMany({
             where: {
                 receiverId: userId
             },
@@ -67,13 +58,13 @@ exports.teachRequestRouter.get('/get', userMiddleware_1.userMiddleware, (req, re
             error: e
         });
     }
-}));
-exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, async (req, res) => {
     const { receiverId, skillId, description, workingDays, recieverToken, serviceId } = req.body;
     // @ts-ignore
     const userId = req.id;
     try {
-        const teachReq = yield prisma.teachRequest.create({
+        const teachReq = await prisma.teachRequest.create({
             data: {
                 senderId: userId,
                 receiverId,
@@ -96,13 +87,13 @@ exports.teachRequestRouter.post('/', userMiddleware_1.userMiddleware, (req, res)
             error: e
         });
     }
-}));
-exports.teachRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.teachRequestRouter.post('/accept', userMiddleware_1.userMiddleware, async (req, res) => {
     //@ts-ignore
     const userId = req.id;
     const { requestId } = req.body;
     try {
-        const teachReq = yield prisma.teachRequest.update({
+        const teachReq = await prisma.teachRequest.update({
             where: {
                 id: requestId,
             },
@@ -119,13 +110,13 @@ exports.teachRequestRouter.post('/accept', userMiddleware_1.userMiddleware, (req
             error: e
         });
     }
-}));
-exports.teachRequestRouter.post('/pending', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.teachRequestRouter.post('/pending', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const { receiverId, skillId } = req.body;
     try {
-        const sentRequest = yield prisma.teachRequest.findFirst({
+        const sentRequest = await prisma.teachRequest.findFirst({
             where: {
                 senderId: userId,
                 receiverId,
@@ -149,14 +140,14 @@ exports.teachRequestRouter.post('/pending', userMiddleware_1.userMiddleware, (re
             error: e
         });
     }
-}));
-exports.teachRequestRouter.post('/deny', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.teachRequestRouter.post('/deny', userMiddleware_1.userMiddleware, async (req, res) => {
     console.log("Reached");
     //@ts-ignore
     const userId = req.id;
     const { requestId } = req.body;
     try {
-        const teachReq = yield prisma.teachRequest.delete({
+        const teachReq = await prisma.teachRequest.delete({
             where: {
                 id: requestId,
             }
@@ -170,11 +161,11 @@ exports.teachRequestRouter.post('/deny', userMiddleware_1.userMiddleware, (req, 
             error: e
         });
     }
-}));
-exports.teachRequestRouter.delete('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.teachRequestRouter.delete('/', async (req, res) => {
     const { teachRequestId } = req.body;
     try {
-        const deletedRequest = yield prisma.teachRequest.delete({
+        const deletedRequest = await prisma.teachRequest.delete({
             where: {
                 id: teachRequestId
             }
@@ -188,4 +179,4 @@ exports.teachRequestRouter.delete('/', (req, res) => __awaiter(void 0, void 0, v
             error: e
         });
     }
-}));
+});

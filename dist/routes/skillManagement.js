@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.skillManagementRouter = void 0;
 // POST /user/:id/skills/sought: Add a skill to skillsSought for a user.
@@ -19,12 +10,12 @@ const express_1 = require("express");
 const userMiddleware_1 = require("../middleware/userMiddleware");
 exports.skillManagementRouter = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-exports.skillManagementRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.skillManagementRouter.post('/:id/skills/sought', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
@@ -35,7 +26,7 @@ exports.skillManagementRouter.post('/:id/skills/sought', userMiddleware_1.userMi
             });
             return;
         }
-        const updatedUser = yield prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -56,13 +47,13 @@ exports.skillManagementRouter.post('/:id/skills/sought', userMiddleware_1.userMi
         });
         return;
     }
-}));
-exports.skillManagementRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillManagementRouter.post('/:id/skills/offered', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
@@ -73,7 +64,7 @@ exports.skillManagementRouter.post('/:id/skills/offered', userMiddleware_1.userM
             });
             return;
         }
-        const updatedUser = yield prisma.user.update({
+        const updatedUser = await prisma.user.update({
             where: {
                 id: userId,
             },
@@ -94,19 +85,19 @@ exports.skillManagementRouter.post('/:id/skills/offered', userMiddleware_1.userM
         });
         return;
     }
-}));
-exports.skillManagementRouter.delete('/:id/skills/sought', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillManagementRouter.delete('/:id/skills/sought', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
         });
         if (skill) {
-            const updatedUser = yield prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: {
                     id: userId,
                 },
@@ -132,19 +123,19 @@ exports.skillManagementRouter.delete('/:id/skills/sought', userMiddleware_1.user
         });
         return;
     }
-}));
-exports.skillManagementRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+exports.skillManagementRouter.delete('/:id/skills/offered', userMiddleware_1.userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.id;
     const skillId = parseInt(req.params.id);
     try {
-        let skill = yield prisma.skill.findUnique({
+        let skill = await prisma.skill.findUnique({
             where: {
                 id: skillId
             }
         });
         if (skill) {
-            const updatedUser = yield prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: {
                     id: userId,
                 },
@@ -170,4 +161,4 @@ exports.skillManagementRouter.delete('/:id/skills/offered', userMiddleware_1.use
         });
         return;
     }
-}));
+});
